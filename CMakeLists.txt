@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 3.24)
 
 project(hlsl2glslfork C CXX)
 
-option(BUILD_HLSL2GLSLTEST "Build the test executable" ON)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(BISON_EXECUTABLE "" CACHE FILEPATH "Path to bison executable (override find_package)")
-set(FLEX_EXECUTABLE  "" CACHE FILEPATH "Path to flex executable (override find_package)")
+option(BUILD_HLSL2GLSLTEST "Build the test executable" ON)
 
 find_package(BISON 3.0 REQUIRED)
 find_package(FLEX REQUIRED)

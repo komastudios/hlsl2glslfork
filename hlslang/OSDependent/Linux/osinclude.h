@@ -9,7 +9,7 @@
 // This file contains any Linux specific functions.
 //
 
-#if !(defined(linux))
+#if !(defined(__linux__) || defined(__linux) || defined(linux))
 #error Trying to include a Linux specific file in a non-Linux build.
 #endif
 

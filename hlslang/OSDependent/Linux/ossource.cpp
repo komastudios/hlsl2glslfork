@@ -7,7 +7,7 @@
 //
 #include "osinclude.h"
 
-#if !(defined(linux))
+#if !(defined(__linux__) || defined(__linux) || defined(linux))
 #error Trying to build a Linux specific file in a non-Linux build.
 #endif
 
