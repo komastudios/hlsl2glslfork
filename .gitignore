@@ -32,3 +32,7 @@ tests/hlsl2glsltest/hlsl2glsltest
 tests/hlsl2glsltest/out.txt
 *-res.txt
 /.vs/
+
+.idea/
+cmake-build-*/
+
