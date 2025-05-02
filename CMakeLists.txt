@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.24)
 
 project(hlsl2glslfork C CXX)
 
-option(BUILD_HLSL2GLSLTEST_EXECUTABLE "Build the test executable" ON)
+option(BUILD_HLSL2GLSLTEST "Build the test executable" ON)
 
 set(BISON_EXECUTABLE "" CACHE FILEPATH "Path to bison executable (override find_package)")
 set(FLEX_EXECUTABLE  "" CACHE FILEPATH "Path to flex executable (override find_package)")
@@ -10,24 +10,21 @@ set(FLEX_EXECUTABLE  "" CACHE FILEPATH "Path to flex executable (override find_p
 find_package(BISON 3.0 REQUIRED)
 find_package(FLEX REQUIRED)
 
-set(HLSLANG_SRC_DIR   hlslang/MachineIndependent)
+set(HLSLANG_SRC_DIR   ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/MachineIndependent)
 set(HLSLANG_BIN_DIR   ${CMAKE_CURRENT_BINARY_DIR})
 
+file(MAKE_DIRECTORY ${HLSLANG_BIN_DIR})
+
 bison_target(
-  hlslang_parser
+  HlslangParser
   ${HLSLANG_SRC_DIR}/hlslang.y
   ${HLSLANG_BIN_DIR}/hlslang_tab.cpp
-  DEFINES_FILE  ${HLSLANG_BIN_DIR}/hlslang_tab.h
+  DEFINES_FILE ${HLSLANG_BIN_DIR}/hlslang_tab.h
   COMPILE_FLAGS "-v -d -t"
 )
 
-flex_target(
-  hlslang_lexer
-  ${HLSLANG_SRC_DIR}/hlslang.l
-  ${HLSLANG_BIN_DIR}/Gen_hlslang.cpp
-)
-
-add_flex_bison_dependency(hlslang_lexer hlslang_parser)
+flex_target(HlslangLexer ${HLSLANG_SRC_DIR}/hlslang.l ${HLSLANG_BIN_DIR}/Gen_hlslang.cpp)
+add_flex_bison_dependency(HlslangLexer HlslangParser)
 
 set(HEADER_FILES
   hlslang/Include/BaseTypes.h
@@ -66,12 +63,6 @@ set(GLSL_CODE_GEN_FILES
   hlslang/GLSLCodeGen/typeSamplers.h
 )
 source_group("GLSL Code Gen" FILES ${GLSL_CODE_GEN_FILES})
-
-set(INCLUDE_FILES
-  include
-)
-
-source_group("include" FILES ${INCLUDE_FILES})
 
 set(MACHINE_INDEPENDENT_FILES
   hlslang/MachineIndependent/HLSL2GLSL.cpp
@@ -161,32 +152,24 @@ add_library(hlsl2glsl
   STATIC
   ${HEADER_FILES}
   ${GLSL_CODE_GEN_FILES}
-  ${INCLUDE_FILES}
   ${MACHINE_INDEPENDENT_FILES}
   ${MACHINE_INDEPENDENT_CPP_FILES}
   ${OSDEPENDENT_FILES}
-  ${BISON_hlslang_parser_OUTPUTS}
-  ${FLEX_hlslang_lexer_OUTPUTS}
-)
-
-# ensure that our build-tree headers are found
-target_include_directories(hlsl2glsl
-  PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/hlslang
-    ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/MachineIndependent
-    ${CMAKE_CURRENT_BINARY_DIR}/hlslang/MachineIndependent
-    ${INCLUDE_FILES}
+  ${BISON_HlslangParser_OUTPUTS}
+  ${FLEX_HlslangLexer_OUTPUTS}
 )
 
 target_include_directories(hlsl2glsl
   PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/hlslang
+    ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/MachineIndependent
     ${OSDEPENDENT_DIR}
 )
 
 # -------------------------------------------------------------------
 #  test executable
 # -------------------------------------------------------------------
-if(HLSL2GLSL_BUILD_TESTS)
+if(BUILD_HLSL2GLSLTEST)
   add_executable(hlsl2glsltest tests/hlsl2glsltest/hlsl2glsltest.cpp)
   target_link_libraries(hlsl2glsltest PRIVATE hlsl2glsl ${TEST_LIBS})
 endif()
@@ -199,3 +182,31 @@ source_group("GLSL Code Gen" FILES ${GLSL_CODE_GEN_FILES})
 source_group("Machine Independent" FILES ${MACHINE_INDEPENDENT_FILES})
 source_group("Machine Independent\\CPP" FILES ${MACHINE_INDEPENDENT_CPP_FILES})
 source_group("OSDependent" FILES ${OSDEPENDENT_FILES})
+
+# -------------------------------------------------------------------
+#  installation
+# -------------------------------------------------------------------
+install(TARGETS hlsl2glsl
+        EXPORT hlsl2glslTargets
+        ARCHIVE   DESTINATION lib          # .lib / .a
+        LIBRARY   DESTINATION lib          # .so / .dylib
+        RUNTIME   DESTINATION bin          # .exe on Windows
+        INCLUDES  DESTINATION include      # for -I<install‐prefix>/include
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+        DESTINATION include
+        FILES_MATCHING PATTERN "*.h"
+        PATTERN ".svn" EXCLUDE
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/Include/
+        DESTINATION include/hlslang
+        FILES_MATCHING PATTERN "*.h"
+        PATTERN ".svn" EXCLUDE
+)
+
+install(EXPORT hlsl2glslTargets
+        NAMESPACE hlsl2glsl::
+        DESTINATION lib/cmake/hlsl2glsl
+)
