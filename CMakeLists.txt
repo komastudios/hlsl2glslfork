@@ -10,6 +10,7 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Build position independent code" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(BUILD_HLSL2GLSLTEST "Build the test executable" ON)
+option(BUILD_TESTING "Build unit tests" ON)
 
 find_package(BISON 3.0 REQUIRED)
 find_package(FLEX REQUIRED)
@@ -166,6 +167,11 @@ if (BUILD_SHARED_LIBS)
 endif()
 
 target_include_directories(hlsl2glsl
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+
+target_include_directories(hlsl2glsl
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/hlslang
     ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/MachineIndependent
@@ -216,3 +222,17 @@ install(EXPORT hlsl2glslTargets
         NAMESPACE hlsl2glsl::
         DESTINATION lib/cmake/hlsl2glsl
 )
+
+if (BUILD_TESTING)
+  enable_testing()
+  include(FetchContent)
+
+  FetchContent_Declare(
+          googletest
+          GIT_REPOSITORY https://github.com/google/googletest.git
+          GIT_TAG        v1.17.0
+  )
+  FetchContent_MakeAvailable(googletest)
+endif()
+
+add_subdirectory(tests)
