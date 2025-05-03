@@ -8,6 +8,7 @@
 #include <future>
 #include <optional>
 #include <mutex>
+#include <array>
 
 #include "hlsl2glsl.h"
 

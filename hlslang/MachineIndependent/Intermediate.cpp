@@ -16,6 +16,9 @@
 namespace hlsl2glsl
 {
 
+TIntermConstant* FoldUnaryConstantExpression(TOperator op, TIntermConstant* node);
+TIntermConstant* FoldBinaryConstantExpression(TOperator op, TIntermConstant* nodeA, TIntermConstant* nodeB);
+
 static TPrecision GetHigherPrecision (TPrecision left, TPrecision right) {
 	return left > right ? left : right;
 }
@@ -232,7 +235,6 @@ TIntermTyped* ir_add_binary_math(TOperator op, TIntermTyped* left, TIntermTyped*
 	
 	if (constA && constB)
 	{
-		TIntermConstant* FoldBinaryConstantExpression(TOperator op, TIntermConstant* nodeA, TIntermConstant* nodeB);
 		TIntermConstant* res = FoldBinaryConstantExpression(node->getOp(), constA, constB);
 		if (res)
 		{
@@ -381,7 +383,6 @@ TIntermTyped* ir_add_unary_math(TOperator op, TIntermNode* childNode, TSourceLoc
 	
 	if (childConst)
 	{
-		TIntermConstant* FoldUnaryConstantExpression(TOperator op, TIntermConstant* node);
 		TIntermConstant* res = FoldUnaryConstantExpression(node->getOp(), childConst);
 		if (res)
 		{

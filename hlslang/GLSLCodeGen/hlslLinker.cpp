@@ -17,6 +17,8 @@
 namespace hlsl2glsl
 {
 
+extern bool IsPositionSemantics(const char* sem, int len);
+
 static const char* kTargetVersionStrings[ETargetVersionCount] = {
 	"", // ES 1.00
 	"", // 1.10
@@ -1250,7 +1252,6 @@ void HlslLinker::emitOutputNonStructParam(GlslSymbol* sym, EShLanguage lang, boo
             const char* str = sym->getSemantic().c_str();
             int         len = sym->getSemantic().length();
 
-            extern bool IsPositionSemantics(const char* sem, int len);
             if(IsPositionSemantics(str, len))
                 prec = EbpHigh;
         }

@@ -14,6 +14,7 @@
 
 namespace hlsl2glsl
 {
+extern bool IsPositionSemantics(const char* sem, int len);
 
 //ACS: some texture lookup types were deprecated after 1.20, and 1.40 won't accept them
 bool UsePost120TextureLookups(ETargetVersion targetVersion) {
@@ -621,7 +622,6 @@ void TGlslOutputTraverser::traverseParameterSymbol(TIntermSymbol *node, TIntermT
     {
         int len = ::strlen(semantic);
 
-        extern bool IsPositionSemantics(const char* sem, int len);
         if(IsPositionSemantics(semantic, len))
             prec = EbpHigh;
     }
@@ -1888,7 +1888,6 @@ GlslStruct *TGlslOutputTraverser::createStructFromType (TType *type)
             const char* str = it->type->getSemantic().c_str();
             int         len = it->type->getSemantic().length();
 
-            extern bool IsPositionSemantics(const char* sem, int len);
             if(IsPositionSemantics(str, len))
                 prec = EbpHigh;
          }
