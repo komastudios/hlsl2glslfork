@@ -5,9 +5,10 @@ project(hlsl2glslfork C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
+option(CMAKE_POSITION_INDEPENDENT_CODE "Build position independent code" ON)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(BUILD_HLSL2GLSLTEST "Build the test executable" ON)
 
 find_package(BISON 3.0 REQUIRED)
@@ -109,15 +110,15 @@ if(WIN32)
   set(OSDEPENDENT_DIR
           ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/OSDependent/Windows)
   set(OSDEPENDENT_FILES
-          ${OSDEPENDENT_DIR}/main.cpp
           ${OSDEPENDENT_DIR}/osinclude.h
           ${OSDEPENDENT_DIR}/ossource.cpp
+          ${OSDEPENDENT_DIR}/unistd.h
   )
   set(OSDEPENDENT_INCLUDE_DIR ${OSDEPENDENT_DIR})
 
-  add_definitions(-D_HAS_ITERATOR_DEBUGGING=0
-          -D_SECURE_SCL=0
-          -D_CRT_SECURE_NO_WARNINGS)
+  # add_definitions(-D_HAS_ITERATOR_DEBUGGING=0
+  #         -D_SECURE_SCL=0
+  #         -D_CRT_SECURE_NO_WARNINGS)
   set(TEST_LIBS opengl32)
 
 elseif(APPLE)
@@ -132,7 +133,6 @@ elseif(APPLE)
   find_library(COCOA_LIBRARY Cocoa REQUIRED)
   find_library(OPENGL_LIBRARY OpenGL REQUIRED)
   set(TEST_LIBS ${COCOA_LIBRARY} ${OPENGL_LIBRARY})
-
 else()
   # assume UNIX / Linux
   set(OSDEPENDENT_DIR
@@ -143,8 +143,7 @@ else()
   )
   set(OSDEPENDENT_INCLUDE_DIR ${OSDEPENDENT_DIR})
 
-  # extra debug flags if you like
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb")
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb")
   set(TEST_LIBS GL glut GLEW pthread)
 endif()
 
@@ -152,7 +151,6 @@ endif()
 #  add the library
 # -------------------------------------------------------------------
 add_library(hlsl2glsl
-  STATIC
   ${HEADER_FILES}
   ${GLSL_CODE_GEN_FILES}
   ${MACHINE_INDEPENDENT_FILES}
@@ -161,6 +159,11 @@ add_library(hlsl2glsl
   ${BISON_HlslangParser_OUTPUTS}
   ${FLEX_HlslangLexer_OUTPUTS}
 )
+
+if (BUILD_SHARED_LIBS)
+  target_compile_definitions(hlsl2glsl PUBLIC HLSL2GLSL_SHARED)
+  target_compile_definitions(hlsl2glsl PRIVATE HLSL2GLSL_IMPLEMENTATION)
+endif()
 
 target_include_directories(hlsl2glsl
   PRIVATE

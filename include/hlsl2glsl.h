@@ -5,13 +5,32 @@
 #ifndef _HLSL2GLSL_INTERFACE_INCLUDED_
 #define _HLSL2GLSL_INTERFACE_INCLUDED_
 
-#ifdef _WIN32
-   #define C_DECL __cdecl
-   #define SH_IMPORT_EXPORT
+#if !defined(HLSL2GLSL_PLATFORM_EXPORT)
+#   if defined(_WIN32)
+#       if defined(HLSL2GLSL_IMPLEMENTATION)
+#           define HLSL2GLSL_PLATFORM_EXPORT __declspec(dllexport)
+#       else
+#           define HLSL2GLSL_PLATFORM_EXPORT __declspec(dllimport)
+#       endif
+#   elif defined(__GNUC__) || defined(__clang__)
+#       define HLSL2GLSL_PLATFORM_EXPORT __attribute__((visibility("default")))
+#   else
+#       define HLSL2GLSL_PLATFORM_EXPORT
+#   endif
+#endif
+
+#if !defined(C_DECL)
+#	ifdef _WIN32
+#		define C_DECL __cdecl
+#	else
+#		define C_DECL
+#	endif
+#endif
+
+#if !defined(HLSL2GLSL_IMPORT_EXPORT) && defined(HLSL2GLSL_SHARED)
+#   define HLSL2GLSL_IMPORT_EXPORT HLSL2GLSL_PLATFORM_EXPORT
 #else
-   #define SH_IMPORT_EXPORT
-   #define __fastcall
-   #define C_DECL
+#   define HLSL2GLSL_IMPORT_EXPORT
 #endif
 
 #include <string>
@@ -222,17 +241,17 @@ typedef HlslCrossCompiler* ShHandle;
 /// HLSL2GLSL translator functions
 /// \return
 ///   1 on success, 0 on failure
-SH_IMPORT_EXPORT int C_DECL Hlsl2Glsl_Initialize();
+HLSL2GLSL_IMPORT_EXPORT int C_DECL Hlsl2Glsl_Initialize();
 
 /// Shutdown the HLSL2GLSL translator.  This function should be called to de-initialize the HLSL2GLSL
 /// translator and should only be called once on shutdown.
-SH_IMPORT_EXPORT void C_DECL Hlsl2Glsl_Shutdown();
+HLSL2GLSL_IMPORT_EXPORT void C_DECL Hlsl2Glsl_Shutdown();
 
 /// Construct a compiler for the given language (one per shader)
-SH_IMPORT_EXPORT ShHandle C_DECL Hlsl2Glsl_ConstructCompiler( const EShLanguage language );  
+HLSL2GLSL_IMPORT_EXPORT ShHandle C_DECL Hlsl2Glsl_ConstructCompiler( const EShLanguage language );  
 
 
-SH_IMPORT_EXPORT void C_DECL Hlsl2Glsl_DestructCompiler( ShHandle handle );
+HLSL2GLSL_IMPORT_EXPORT void C_DECL Hlsl2Glsl_DestructCompiler( ShHandle handle );
 
 
 /// File read callback for #include processing.
@@ -250,7 +269,7 @@ struct Hlsl2Glsl_ParseCallbacks
 ///		File read callback for #include processing. If NULL is passed, then #include directives will result in error.
 /// \param options
 ///		Flags of TTranslateOptions
-SH_IMPORT_EXPORT int C_DECL Hlsl2Glsl_Parse(
+HLSL2GLSL_IMPORT_EXPORT int C_DECL Hlsl2Glsl_Parse(
 	const ShHandle handle,
 	const char* shaderString,
 	ETargetVersion targetVersion,
@@ -260,7 +279,7 @@ SH_IMPORT_EXPORT int C_DECL Hlsl2Glsl_Parse(
 
 
 /// After parsing a HLSL shader, do the final translation to GLSL.
-SH_IMPORT_EXPORT int C_DECL Hlsl2Glsl_Translate(
+HLSL2GLSL_IMPORT_EXPORT int C_DECL Hlsl2Glsl_Translate(
 	const ShHandle handle,
 	const char* entry,
 	ETargetVersion targetVersion,
@@ -268,18 +287,18 @@ SH_IMPORT_EXPORT int C_DECL Hlsl2Glsl_Translate(
 
 
 /// After translating HLSL shader(s), retrieve the translated GLSL source.
-SH_IMPORT_EXPORT const char* C_DECL Hlsl2Glsl_GetShader( const ShHandle handle );
+HLSL2GLSL_IMPORT_EXPORT const char* C_DECL Hlsl2Glsl_GetShader( const ShHandle handle );
 
 
-SH_IMPORT_EXPORT const char* C_DECL Hlsl2Glsl_GetInfoLog( const ShHandle handle );
+HLSL2GLSL_IMPORT_EXPORT const char* C_DECL Hlsl2Glsl_GetInfoLog( const ShHandle handle );
 
 
 /// After translating, retrieve the number of uniforms
-SH_IMPORT_EXPORT int C_DECL Hlsl2Glsl_GetUniformCount( const ShHandle handle );
+HLSL2GLSL_IMPORT_EXPORT int C_DECL Hlsl2Glsl_GetUniformCount( const ShHandle handle );
 
 
 /// After translating, retrieve the uniform info table
-SH_IMPORT_EXPORT const ShUniformInfo* C_DECL Hlsl2Glsl_GetUniformInfo( const ShHandle handle );
+HLSL2GLSL_IMPORT_EXPORT const ShUniformInfo* C_DECL Hlsl2Glsl_GetUniformInfo( const ShHandle handle );
 
 
 /// Instead of mapping HLSL attributes to GLSL fixed-function attributes, this function can be used to 
@@ -296,14 +315,14 @@ SH_IMPORT_EXPORT const ShUniformInfo* C_DECL Hlsl2Glsl_GetUniformInfo( const ShH
 ///      Number of semantics to set in the arrays
 /// \return
 ///      1 on success, 0 on failure
-SH_IMPORT_EXPORT int C_DECL Hlsl2Glsl_SetUserAttributeNames ( ShHandle handle, 
+HLSL2GLSL_IMPORT_EXPORT int C_DECL Hlsl2Glsl_SetUserAttributeNames ( ShHandle handle, 
                                                               const EAttribSemantic *pSemanticEnums, 
                                                               const char *pSemanticNames[], 
                                                               int nNumSemantics );
 
 
 
-SH_IMPORT_EXPORT bool C_DECL Hlsl2Glsl_VersionUsesPrecision (ETargetVersion version);
+HLSL2GLSL_IMPORT_EXPORT bool C_DECL Hlsl2Glsl_VersionUsesPrecision (ETargetVersion version);
 
 } // extern "C"
 
