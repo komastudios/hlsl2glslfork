@@ -25,7 +25,7 @@ bison_target(
   ${HLSLANG_SRC_DIR}/hlslang.y
   ${HLSLANG_BIN_DIR}/hlslang_tab.cpp
   DEFINES_FILE ${HLSLANG_BIN_DIR}/hlslang_tab.h
-  COMPILE_FLAGS "-v -d -t"
+  COMPILE_FLAGS "-v -d"
 )
 
 flex_target(HlslangLexer ${HLSLANG_SRC_DIR}/hlslang.l ${HLSLANG_BIN_DIR}/Gen_hlslang.cpp)
