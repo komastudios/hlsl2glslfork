@@ -14,6 +14,8 @@
 #include "glslSymbol.h"
 #include "glslFunction.h"
 
+namespace hlsl2glsl
+{
 
 class TGlslOutputTraverser : public TIntermTraverser 
 {
@@ -72,5 +74,7 @@ public:
 	bool m_UsePrecision;
 	bool m_ArrayInitWorkaround;
 };
+
+} // namespace hlsl2glsl
 
 #endif //GLSL_OUTPUT_H

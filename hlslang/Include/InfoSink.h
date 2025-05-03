@@ -9,6 +9,9 @@
 #include "../Include/Common.h"
 #include <math.h>
 
+namespace hlsl2glsl
+{
+
 // Returns the fractional part of the given floating-point number.
 inline float fractionalPart(float f) {
 	float intPart = 0.0f;
@@ -160,6 +163,8 @@ public:
    TInfoSinkBase info;
    TInfoSinkBase debug;
 };
+
+} // namespace hlsl2glsl
 
 #endif // _INFOSINK_INCLUDED_
 

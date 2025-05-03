@@ -13,6 +13,9 @@
 #include <float.h>
 #include <limits.h>
 
+namespace hlsl2glsl
+{
+
 static TPrecision GetHigherPrecision (TPrecision left, TPrecision right) {
 	return left > right ? left : right;
 }
@@ -1674,3 +1677,5 @@ TIntermTyped* ir_promote_constant(TBasicType promoteTo, TIntermConstant* right, 
 
 	return left;
 }
+
+} // namespace glslang

@@ -5,6 +5,9 @@
 #include "../Include/InfoSink.h"
 #include <string.h>
 
+namespace hlsl2glsl
+{
+
 void TInfoSinkBase::append(const char *s)           
 {
    checkMem(strlen(s)); 
@@ -29,3 +32,4 @@ void TInfoSinkBase::append(const TString& t)
    sink.append(t.c_str()); 
 }
 
+} // namespace hlsl2glsl

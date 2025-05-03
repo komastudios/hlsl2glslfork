@@ -6,6 +6,9 @@
 #ifndef _BASICTYPES_INCLUDED_
 #define _BASICTYPES_INCLUDED_
 
+namespace hlsl2glsl
+{
+
 //
 // Precision qualifiers
 //
@@ -97,6 +100,8 @@ __inline const char* getQualifierString(TQualifier q)
    default:                return "unknown qualifier";
    }
 }
+
+} // namespace hlsl2glsl
 
 #endif // _BASICTYPES_INCLUDED_
 

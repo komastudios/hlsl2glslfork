@@ -10,6 +10,8 @@
 // with constant expressions.
 // Returns the node to keep using, or NULL.
 
+namespace hlsl2glsl
+{
 
 TIntermConstant* FoldBinaryConstantExpression(TOperator op, TIntermConstant* nodeA, TIntermConstant* nodeB)
 {
@@ -116,3 +118,5 @@ TIntermConstant* FoldUnaryConstantExpression(TOperator op, TIntermConstant* node
 	delete node;
 	return newNode;
 }
+
+} // namespace hlsl2glsl

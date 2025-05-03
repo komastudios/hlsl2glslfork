@@ -33,6 +33,9 @@
 #include "../Include/intermediate.h"
 #include "../Include/InfoSink.h"
  
+namespace hlsl2glsl
+{
+
 //
 // Symbol base class.  (Can build functions or variables out of these...)
 //
@@ -316,5 +319,7 @@ protected:
 	std::vector<TSymbolTableLevel*> table;
 	int uniqueId;     // for unique identification in code generation
 };
+
+} // namespace hlsl2glsl
 
 #endif // _SYMBOL_TABLE_INCLUDED_

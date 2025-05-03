@@ -25,7 +25,12 @@ Jutta Degener, 1995
 #include "ParseHelper.h"
 #include "../../include/hlsl2glsl.h"
 
-extern void yyerror(TParseContext&, const char*);
+namespace hlsl2glsl
+{
+extern void yyerror(hlsl2glsl::TParseContext&, const char*);
+}
+
+using namespace hlsl2glsl;
 
 #define FRAG_ONLY(S, L) {                                                       \
     if (parseContext.language != EShLangFragment) {                             \
@@ -55,44 +60,44 @@ extern void yyerror(TParseContext&, const char*);
 %}
 %union {
     struct {
-        TSourceLoc line;
+        hlsl2glsl::TSourceLoc line;
         union {
-            TString *string;
+            hlsl2glsl::TString *string;
             float f;
             int i;
             bool b;
         };
-        TSymbol* symbol;
+        hlsl2glsl::TSymbol* symbol;
     } lex;
     struct {
-        TSourceLoc line;
-        TOperator op;
+        hlsl2glsl::TSourceLoc line;
+        hlsl2glsl::TOperator op;
         union {
-            TIntermNode* intermNode;
-            TIntermNodePair nodePair;
-            TIntermTyped* intermTypedNode;
-            TIntermAggregate* intermAggregate;
-			TIntermTyped* intermDeclaration;
+            hlsl2glsl::TIntermNode* intermNode;
+            hlsl2glsl::TIntermNodePair nodePair;
+            hlsl2glsl::TIntermTyped* intermTypedNode;
+            hlsl2glsl::TIntermAggregate* intermAggregate;
+			hlsl2glsl::TIntermTyped* intermDeclaration;
         };
         union {
-            TPublicType type;
-            TQualifier qualifier;
-            TFunction* function;
-            TParameter param;
-            TTypeLine typeLine;
-            TTypeList* typeList;
-	    TAnnotation* ann;
-	    TTypeInfo* typeInfo;
+            hlsl2glsl::TPublicType type;
+            hlsl2glsl::TQualifier qualifier;
+            hlsl2glsl::TFunction* function;
+            hlsl2glsl::TParameter param;
+            hlsl2glsl::TTypeLine typeLine;
+            hlsl2glsl::TTypeList* typeList;
+	    hlsl2glsl::TAnnotation* ann;
+	    hlsl2glsl::TTypeInfo* typeInfo;
         };
     } interm;
 }
 
 %{
-    extern int yylex(YYSTYPE*, TParseContext&);
+extern int yylex(YYSTYPE*, TParseContext&);
 %}
 
-%parse-param { TParseContext& parseContext}
-%lex-param { TParseContext& parseContext }
+%parse-param { hlsl2glsl::TParseContext& parseContext}
+%lex-param { hlsl2glsl::TParseContext& parseContext }
 
 %define api.pure
 
@@ -165,7 +170,7 @@ extern void yyerror(TParseContext&, const char*);
 %type <lex> annotation_item semantic
 %type <lex> register_specifier
 
-%start translation_unit 
+%start translation_unit
 %%
 
 variable_identifier 

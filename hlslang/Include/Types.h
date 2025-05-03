@@ -9,6 +9,9 @@
 #include "../Include/Common.h"
 #include "../Include/BaseTypes.h"
 
+namespace hlsl2glsl
+{
+
 //
 // Need to have association of line numbers to types in a list for building structs.
 //
@@ -354,7 +357,7 @@ public:
       return !operator==(right);
    }
    const char* getBasicString() const { return TType::getBasicString(type); }
-   const char* getQualifierString() const { return ::getQualifierString(qualifier); }
+   const char* getQualifierString() const { return hlsl2glsl::getQualifierString(qualifier); }
    TString getCompleteString() const;
 
    const TString& getSemantic() const { return *semantic; }
@@ -445,5 +448,7 @@ private:
 	TString registerSpec;
 	TAnnotation *annotation;
 };
+
+} // namespace hlsl2glsl
 
 #endif // _TYPES_INCLUDED_

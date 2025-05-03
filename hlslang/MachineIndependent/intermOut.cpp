@@ -5,6 +5,9 @@
 
 #include "localintermediate.h"
 
+namespace hlsl2glsl
+{
+
 //
 // Two purposes:
 // 1.  Show an example of how to iterate tree.  Functions can
@@ -515,3 +518,4 @@ void ir_output_tree(TIntermNode* root, TInfoSink& infoSink)
    root->traverse(&it);
 }
 
+} // namespace hlsl2glsl

@@ -11,11 +11,16 @@
 #include "../Include/intermediate.h"
 #include "../../include/hlsl2glsl.h" // for ETargetVersion
 
+namespace hlsl2glsl
+{
+
 void initializeHLSLSupportLibrary(ETargetVersion targetVersion);
 void finalizeHLSLSupportLibrary();
 
 typedef std::set<std::string> ExtensionSet;
 
 std::string getHLSLSupportCode (TOperator op, ExtensionSet& extensions, bool vertexShader, bool gles);
+
+} // namespace hlsl2glsl
 
 #endif //HLSL_SUPPORT_LIB_H

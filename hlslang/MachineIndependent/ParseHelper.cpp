@@ -8,6 +8,8 @@
 #include "osinclude.h"
 #include <stdarg.h>
 
+namespace hlsl2glsl
+{
 
 // ------------------------------------------------------------------
 
@@ -1968,3 +1970,4 @@ bool FreeParseContextIndex()
    return OS_FreeTLSIndex(tlsiIndex);
 }
 
+} // namespace glslang

@@ -17,6 +17,9 @@
 #include "../Include/Types.h"
 #include "../../include/hlsl2glsl.h"
 
+namespace hlsl2glsl
+{
+
 struct TParseContext;
 
 //
@@ -706,6 +709,8 @@ public:
 	bool preVisit;
 	bool postVisit;
 };
+
+} // namespace hlsl2glsl
 
 #endif // __INTERMEDIATE_H
 

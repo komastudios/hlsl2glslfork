@@ -48,6 +48,7 @@
     void operator delete[](void*) { }                                 \
     void operator delete[](void *, void *) { }
 
+namespace hlsl2glsl {
 
 //
 // Pool version of string.
@@ -103,6 +104,8 @@ inline const TString String(const int i, const int base = 10)
 
    return text;
 }
+
+} // namespace hlsl2glsl
 
 #endif // _COMMON_INCLUDED_
 

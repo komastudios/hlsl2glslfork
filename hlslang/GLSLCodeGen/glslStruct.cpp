@@ -5,6 +5,9 @@
 
 #include "glslStruct.h"
 
+namespace hlsl2glsl
+{
+
 StructMember::StructMember(const std::string &n, const std::string &s, EGlslSymbolType t, EGlslQualifier q, TPrecision prec, int as, GlslStruct* st, const std::string &bn) :
 GlslSymbolOrStructMemberBase(n, s, t, q, prec, as, bn),
 structType(st)
@@ -33,3 +36,5 @@ std::string GlslStruct::getDecl() const
 	
 	return out.str();
 }
+
+} // namespace hlsl2glsl

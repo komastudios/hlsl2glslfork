@@ -10,6 +10,9 @@
 #include "propagateMutable.h"
 #include "hlslLinker.h"
 
+namespace hlsl2glsl
+{
+
 HlslCrossCompiler::HlslCrossCompiler(EShLanguage l)
 :	language(l)
 ,	m_ASTTransformed(false)
@@ -46,3 +49,5 @@ void HlslCrossCompiler::ProduceGLSL (TIntermNode *root, ETargetVersion version, 
 	TGlslOutputTraverser glslTraverse (infoSink, functionList, structList, m_DeferredArrayInit, m_DeferredMatrixInit, version, options);
 	root->traverse(&glslTraverse);
 }
+
+} // namespace hlsl2glsl

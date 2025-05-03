@@ -8,6 +8,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+namespace hlsl2glsl
+{
+
 /// Table to convert GLSL variable types to strings
 const char kGLSLTypeNames[EgstTypeCount][32] =
 {
@@ -277,3 +280,5 @@ int getElements( EGlslSymbolType t )
 		return 0;
 	}
 }
+
+} // namespace hlsl2glsl

@@ -9,6 +9,9 @@
 #include "glslCommon.h"
 #include "glslStruct.h"
 
+namespace hlsl2glsl
+{
+
 class GlslSymbol : public GlslSymbolOrStructMemberBase
 {
 public:
@@ -63,6 +66,8 @@ private:
 	int refCount;
 	bool isGlobal;
 };
+
+} // namespace hlsl2glsl
 
 #endif //GLSL_SYMBOL_H
 

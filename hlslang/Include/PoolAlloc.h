@@ -27,6 +27,8 @@
 #include <stddef.h>
 #include <vector>
 
+namespace hlsl2glsl
+{
 
 // -----------------------------------------------------------------------------
 
@@ -205,5 +207,7 @@ protected:
    TPoolAllocator* allocator;
 #endif
 };
+
+} // namespace hlsl2glsl
 
 #endif // _POOLALLOC_INCLUDED_

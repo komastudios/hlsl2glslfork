@@ -8,6 +8,9 @@
 
 #include "glslCommon.h"
 
+namespace hlsl2glsl
+{
+
 class GlslStruct;
 
 class StructMember : public GlslSymbolOrStructMemberBase
@@ -39,5 +42,7 @@ private:
 	std::string name;
 	TSourceLoc m_Line;
 };
+
+} // namespace hlsl2glsl
 
 #endif //GLSL_STRUCT_H

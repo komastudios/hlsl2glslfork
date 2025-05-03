@@ -9,6 +9,9 @@
 #include "SymbolTable.h"
 #include "localintermediate.h"
 
+namespace hlsl2glsl
+{
+
 //
 // The following are extra variables needed during parsing, grouped together so
 // they can be passed to the parser without needing a global.
@@ -116,6 +119,8 @@ typedef struct TThreadParseContextRec
 {
    TParseContext *lpGlobalParseContext;
 } TThreadParseContext;
+
+} // namespace hlsl2glsl
 
 #endif // _PARSER_HELPER_INCLUDED_
 

@@ -6,6 +6,9 @@
 #include "../Include/intermediate.h"
 #include "RemoveTree.h"
 
+namespace hlsl2glsl
+{
+
 // Code to recursively delete the intermediate tree.
 
 static void RemoveSymbol(TIntermSymbol* node, TIntermTraverser* it)
@@ -61,3 +64,5 @@ void ir_remove_tree(TIntermNode* root)
 
    root->traverse(&it);
 }
+
+} // namespace hlsl2glsl

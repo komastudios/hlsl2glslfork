@@ -38,19 +38,23 @@ I           [uUlL]
 #include "ParseHelper.h"
 #include "hlslang_tab.h"
 
+using namespace hlsl2glsl;
+
 /* windows only pragma */
 #ifdef _MSC_VER
 #pragma warning(disable : 4102)
 #endif
 
+namespace hlsl2glsl {
 int yy_input(char* buf, int max_size);
 static TSourceLoc lexlineno = { 0, 0 };
+}
 
-extern int yyparse(TParseContext&);
-#define YY_DECL int yylex(YYSTYPE* pyylval, TParseContext& parseContext)    
+extern int yyparse(hlsl2glsl::TParseContext&);
+#define YY_DECL int yylex(YYSTYPE* pyylval, hlsl2glsl::TParseContext& parseContext)
 
  
-#define YY_INPUT(buf,result,max_size) (result = yy_input(buf, max_size))
+#define YY_INPUT(buf,result,max_size) (result = hlsl2glsl::yy_input(buf, max_size))
 
 %}
 
@@ -316,6 +320,8 @@ BEGIN(INITIAL);
 static hlmojo_Preprocessor* g_cpp;
 static TParseContext* g_parseContext;
 
+namespace hlsl2glsl {
+
 const TSourceLoc gNullSourceLoc = { NULL, 0 };
 
 static int cpp_get_token (hlmojo_Preprocessor* pp, char* buf, int maxSize)
@@ -546,3 +552,5 @@ void setInitialState()
 {
     yy_start = 1;
 }
+
+} // namespace hlsl2glsl

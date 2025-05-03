@@ -7,6 +7,9 @@
 #include "localintermediate.h"
 #include "glslOutput.h"
 
+namespace hlsl2glsl
+{
+
 struct TSamplerTraverser : public TIntermTraverser 
 {
 	static void traverseSymbol(TIntermSymbol*, TIntermTraverser*);
@@ -467,3 +470,5 @@ void PropagateSamplerTypes (TIntermNode* root, TInfoSink &info)
       }
    } while (st.abort);
 }
+
+} // namespace hlsl2glsl

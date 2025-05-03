@@ -12,6 +12,9 @@
 #include "glslFunction.h"
 #include "glslStruct.h"
 
+namespace hlsl2glsl
+{
+
 class HlslLinker;
 
 class HlslCrossCompiler
@@ -43,5 +46,7 @@ public:
 	std::stringstream m_DeferredArrayInit;
 	std::stringstream m_DeferredMatrixInit;
 };
+
+} // namespace hlsl2glsl
 
 #endif //HLSL_CROSS_COMPILER_H

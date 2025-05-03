@@ -10,6 +10,9 @@
 #include "SymbolTable.h"
 #include "../../include/hlsl2glsl.h"
 
+namespace hlsl2glsl
+{
+
 typedef TVector<TString> TBuiltInStrings;
 
 class TBuiltIns
@@ -28,6 +31,8 @@ private:
 };
 
 void IdentifyBuiltIns(EShLanguage, TSymbolTable&);
+
+} // namespace hlsl2glsl
 
 #endif // _INITIALIZE_INCLUDED_
 

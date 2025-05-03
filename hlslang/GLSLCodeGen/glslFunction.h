@@ -12,6 +12,9 @@
 #include "glslStruct.h"
 #include "glslSymbol.h"
 
+namespace hlsl2glsl
+{
+
 /// Represents all the data necessary to represent a
 /// function for the linker to create a complete output program.
 class GlslFunction 
@@ -110,6 +113,8 @@ private:
 
 	bool inStatement;
 };
+
+} // namespace hlsl2glsl
 
 #endif //GLSL_FUNCTION_H
 

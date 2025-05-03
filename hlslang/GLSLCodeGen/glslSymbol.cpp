@@ -7,6 +7,9 @@
 #include <float.h>
 #include <cstring>
 
+namespace hlsl2glsl
+{
+
 // Check against names that are keywords in GLSL, but not HLSL
 static bool IsReservedGlslKeyword (const std::string& name)
 {
@@ -436,3 +439,5 @@ void GlslSymbol::mangleName()
 	else
 		mutableMangledName = mangledName;
 }
+
+} // namespace hlsl2glsl

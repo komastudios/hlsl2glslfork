@@ -5,6 +5,8 @@
 
 #include "glslFunction.h"
 
+namespace hlsl2glsl
+{
 
 GlslFunction::GlslFunction( const std::string &n, const std::string &m, EGlslSymbolType type, TPrecision prec, const std::string &s, const TSourceLoc& l)
 : name(n)
@@ -130,3 +132,5 @@ void GlslFunction::addNeededExtensions (ExtensionSet& extensions, ETargetVersion
 		}
 	}
 }
+
+} // namespace hlsl2glsl

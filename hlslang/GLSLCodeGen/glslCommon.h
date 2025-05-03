@@ -10,6 +10,9 @@
 
 #include "localintermediate.h"
 
+namespace hlsl2glsl
+{
+
 // GLSL symbol types
 enum EGlslSymbolType
 {
@@ -117,5 +120,7 @@ EGlslQualifier translateQualifier( TQualifier qual);
 
 // Gets the number of elements in EGlslSymbolType.
 int getElements( EGlslSymbolType t );
+
+} // namespace hlsl2glsl
 
 #endif //GLSL_COMMON_H

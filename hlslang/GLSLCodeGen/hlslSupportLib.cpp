@@ -9,6 +9,9 @@
 #include <map>
 #include "hlslSupportLib.h"
 
+namespace hlsl2glsl
+{
+
 typedef std::map<TOperator,std::string> CodeMap;
 static CodeMap *hlslSupportLib = 0;
 static CodeMap *hlslSupportLibESOverrides = 0;
@@ -1155,3 +1158,5 @@ std::string getHLSLSupportCode (TOperator op, ExtensionSet& extensions, bool ver
 
 	return it->second;
 }
+
+} // namespace glslang

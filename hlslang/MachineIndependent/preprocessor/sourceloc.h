@@ -1,25 +1,18 @@
 #ifndef __SOURCELOC_H
 #define __SOURCELOC_H
 
+#include <sstream>
+
+namespace hlsl2glsl
+{
+
 typedef struct 
 {
     const char* file;
     int line;
 } TSourceLoc;
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern const TSourceLoc gNullSourceLoc;
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-#include <sstream>
 
 void SetLineNumber(TSourceLoc line, TSourceLoc& outLine);
 
@@ -61,6 +54,6 @@ inline void OutputLineDirective(std::stringstream& s, const TSourceLoc& l)
 	s << '\n';
 }
 
-#endif
+} // namespace hlsl2glsl
 
 #endif /* __SOURCELOC_H */ 

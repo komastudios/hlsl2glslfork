@@ -233,8 +233,10 @@ enum TTranslateOptions
 
 /// Generic opaque handle.  This type is used for handles to the parser/translator.
 /// If handle creation fails, 0 will be returned.
+namespace hlsl2glsl {
 class HlslCrossCompiler;
-typedef HlslCrossCompiler* ShHandle;
+} // namespace hlsl2glsl
+typedef hlsl2glsl::HlslCrossCompiler* ShHandle;
 	
 
 /// Initialize the HLSL2GLSL translator.  This function must be called once prior to calling any other

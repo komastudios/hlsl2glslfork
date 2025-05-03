@@ -6,6 +6,9 @@
 #ifndef PROPAGATE_MUTABLE_H
 #define PROPAGATE_MUTABLE_H
 
+namespace hlsl2glsl
+{
+
 class TIntermNode;
 class TInfoSink;
 
@@ -26,5 +29,6 @@ class TInfoSink;
 //  }
 void PropagateMutableUniforms (TIntermNode* root, TInfoSink &info);
 
+} // namespace hlsl2glsl
 
 #endif //PROPAGATE_MUTABLE_H

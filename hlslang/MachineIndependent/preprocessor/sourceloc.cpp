@@ -1,6 +1,9 @@
 #include "sourceloc.h"
 #include "../../Include/Common.h"
 
+namespace hlsl2glsl
+{
+
 void SetLineNumber(TSourceLoc line, TSourceLoc& outLine)
 {
 	outLine.file = NULL;
@@ -27,3 +30,5 @@ void SetLineNumber(TSourceLoc line, TSourceLoc& outLine)
 		}
 	}
 }
+
+} // namespace hlsl2glsl

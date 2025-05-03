@@ -6,6 +6,8 @@
 #include <set>
 #include "localintermediate.h"
 
+namespace hlsl2glsl
+{
 
 struct TPropagateMutable : public TIntermTraverser 
 {
@@ -72,3 +74,5 @@ void PropagateMutableUniforms (TIntermNode* root, TInfoSink &info)
 		}
 	} while (st.abort);
 }
+
+} // namespace hlsl2glsl

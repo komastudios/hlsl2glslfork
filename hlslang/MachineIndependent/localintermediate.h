@@ -10,6 +10,9 @@
 #include "../../include/hlsl2glsl.h"
 #include "SymbolTable.h"
 
+namespace hlsl2glsl
+{
+
 struct TVectorFields
 {
    int offsets[4];
@@ -73,6 +76,7 @@ static inline TPublicType ir_get_decl_type_noarray(TIntermTyped* decl)
 	return p;
 }
 
+} // namespace hlsl2glsl
 
 #endif // _LOCAL_INTERMEDIATE_INCLUDED_
 

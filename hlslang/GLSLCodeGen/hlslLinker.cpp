@@ -14,6 +14,9 @@
 #include <string.h>
 #include <set>
 
+namespace hlsl2glsl
+{
+
 static const char* kTargetVersionStrings[ETargetVersionCount] = {
 	"", // ES 1.00
 	"", // 1.10
@@ -1722,3 +1725,5 @@ const char* HlslLinker::getShaderText() const
 	bs = CleanupShaderText (shaderPrefix.str(), shader.str());
 	return bs.c_str();
 }
+
+} // namespace glslang

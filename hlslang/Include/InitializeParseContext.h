@@ -6,10 +6,14 @@
 #ifndef __INITIALIZE_PARSE_CONTEXT_INCLUDED_
 #define __INITIALIZE_PARSE_CONTEXT_INCLUDED_
 
+namespace hlsl2glsl
+{
+
 bool InitializeParseContextIndex();
 bool InitializeGlobalParseContext();
 bool FreeParseContext();
 bool FreeParseContextIndex();
 
+} // namespace hlsl2glsl
 
 #endif // __INITIALIZE_PARSE_CONTEXT_INCLUDED_

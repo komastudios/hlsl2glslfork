@@ -12,6 +12,9 @@
 
 #include "glslFunction.h"
 
+namespace hlsl2glsl
+{
+
 class HlslCrossCompiler;
 
 
@@ -105,5 +108,7 @@ private:
 	ETargetVersion m_Target;
 	unsigned m_Options;
 };
+
+} // namespace hlsl2glsl
 
 #endif //HLSL_LINKER_H

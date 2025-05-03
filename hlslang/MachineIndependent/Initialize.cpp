@@ -15,6 +15,9 @@
 #include "SymbolTable.h"
 #include <sstream>
 
+namespace hlsl2glsl
+{
+
 static void appendMatrixType(std::stringstream& ss, unsigned rows, unsigned cols)
 {
     ss << "float";
@@ -693,3 +696,5 @@ void IdentifyBuiltIns(EShLanguage language, TSymbolTable& symbolTable)
    default: assert(false && "Language not supported");
    }
 }
+
+} // namespace glslang

@@ -18,9 +18,11 @@
 #include "../Include/InitializeParseContext.h"
 #include "osinclude.h"
 
+using namespace hlsl2glsl;
 
 // -----------------------------------------------------------------------------
 
+namespace {
 
 static OS_TLSIndex s_ThreadInitialized = OS_INVALID_TLS_INDEX;
 
@@ -213,6 +215,7 @@ static bool GenerateBuiltInSymbolTable(TInfoSink& infoSink, TSymbolTable* symbol
    return true;
 }
 
+} // namespace
 
 int C_DECL Hlsl2Glsl_Initialize()
 {

@@ -12,6 +12,9 @@
 	#define snprintf _snprintf
 #endif
 
+namespace hlsl2glsl
+{
+
 //ACS: some texture lookup types were deprecated after 1.20, and 1.40 won't accept them
 bool UsePost120TextureLookups(ETargetVersion targetVersion) {
     if(targetVersion<ETargetVersionCount) {
@@ -1912,3 +1915,5 @@ GlslStruct *TGlslOutputTraverser::createStructFromType (TType *type)
 
    return s;
 }
+
+} //namespace glslang

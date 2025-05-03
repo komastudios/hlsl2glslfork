@@ -6,6 +6,9 @@
 #include "SymbolTable.h"
 #include <algorithm>
 
+namespace hlsl2glsl
+{
+
 TString* TParameter::NullSemantic = 0;
 
 bool TSymbolTableLevel::insert(TSymbol& symbol) 
@@ -442,3 +445,5 @@ void TSymbolTable::copyTable(const TSymbolTable& copyOf)
 		table.push_back(copyOf.table[i]->clone(remapper));
 	}
 }
+
+} // namespace hlsl2glsl

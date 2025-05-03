@@ -9,6 +9,9 @@
 #include "../Include/InitializeGlobals.h"
 #include "osinclude.h"
 
+namespace hlsl2glsl
+{
+
 static OS_TLSIndex s_TLSPoolAlloc;
 
 
@@ -256,3 +259,5 @@ void* TPoolAllocator::allocate(size_t numBytes)
 
    return ret;
 }
+
+} // namespace hlsl2glsl
