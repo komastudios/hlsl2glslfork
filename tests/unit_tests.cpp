@@ -100,11 +100,31 @@ std::string GetCompiledShaderText(ShHandle parser)
     return txt;
 }
 
-class Hlsl2GlslTest : public ::testing::Test
+using CompilerResult = std::pair<bool, std::string>;
+
+CompilerResult CompileShader(EShLanguage type, ETargetVersion targetVersion, const char* shaderSrc)
+{
+    unsigned options = 0;
+    std::unique_ptr<hlsl2glsl::HlslCrossCompiler, decltype(&Hlsl2Glsl_DestructCompiler)> parser(
+        Hlsl2Glsl_ConstructCompiler(type), &Hlsl2Glsl_DestructCompiler);
+    int parseOk = Hlsl2Glsl_Parse (parser.get(), shaderSrc,
+        targetVersion, nullptr, options);
+    std::string infoLog = Hlsl2Glsl_GetInfoLog(parser.get());
+    if (parseOk) {
+        int translateOk = Hlsl2Glsl_Translate (parser.get(), "main", targetVersion, options);
+        infoLog = Hlsl2Glsl_GetInfoLog(parser.get());
+        if (translateOk) {
+            std::string text = GetCompiledShaderText(parser.get());
+            return std::make_pair(true, text);
+        }
+    }
+    return std::make_pair(false, infoLog);
+}
+
+class Hlsl2GlslTest : public TestWithParam<std::tuple<size_t, bool>>
 {
 public:
     ETargetVersion targetVersion { ETargetGLSL_ES_100 };
-    std::array<ShHandle, EShLangCount> compilerHandles {};
 
     void SetUp() override;
     void TearDown() override;
@@ -119,41 +139,67 @@ void Hlsl2GlslTest::SetUp()
     {
         throw std::runtime_error { "failed to initialize HLSL2GLSL" };
     }
-
-    for (size_t i=0;i<compilerHandles.size();++i) {
-        compilerHandles[i] = Hlsl2Glsl_ConstructCompiler(static_cast<EShLanguage>(i));
-    }
 }
 
 void Hlsl2GlslTest::TearDown()
 {
-    for (auto& hnd : compilerHandles) {
-        Hlsl2Glsl_DestructCompiler(hnd);
-        hnd = nullptr;
-    }
-
     Hlsl2Glsl_Shutdown();
 }
 
 std::pair<bool, std::string> Hlsl2GlslTest::compileShader(EShLanguage type, const std::string& shaderSrc) const
 {
-    unsigned options = 0;
-    int parseOk = Hlsl2Glsl_Parse (compilerHandles[type], shaderSrc.c_str(),
-        targetVersion, nullptr, options);
-    std::string infoLog = Hlsl2Glsl_GetInfoLog(compilerHandles[type]);
-    if (parseOk) {
-        int translateOk = Hlsl2Glsl_Translate (compilerHandles[type], "main", targetVersion, options);
-        infoLog = Hlsl2Glsl_GetInfoLog(compilerHandles[type]);
-        if (translateOk) {
-            std::string text = GetCompiledShaderText(compilerHandles[type]);
-            return std::make_pair(true, text);
+    ETargetVersion version = targetVersion;
+
+    size_t asyncTasks = std::get<0>(GetParam());
+    bool synchronized = std::get<1>(GetParam());
+    if (asyncTasks == 0) {
+        return CompileShader(type, version, shaderSrc.c_str());
+    }
+
+    std::vector<std::future<CompilerResult>> futures;
+    futures.reserve(asyncTasks);
+
+    std::mutex mutex;
+    for (size_t i=0;i<asyncTasks;++i) {
+        if (synchronized) {
+            futures.push_back(std::async(std::launch::async, [&mutex](EShLanguage pType, ETargetVersion pVersion, const char* pShaderSrc)
+            {
+                std::unique_lock lk(mutex);
+                return CompileShader(pType, pVersion, pShaderSrc);
+            }, type, version, shaderSrc.c_str()));
+        }
+        else
+        {
+            futures.push_back(std::async(std::launch::async, &CompileShader, type, version, shaderSrc.c_str()));
         }
     }
-    return std::make_pair(false, infoLog);
+
+    std::optional<CompilerResult> result;
+    std::vector<std::exception_ptr> errors;
+    for (size_t i=0;i<asyncTasks;++i) {
+        try
+        {
+            auto taskResult = futures[i].get();
+            if (!result.has_value()) {
+                result = std::make_optional(taskResult);
+            }
+            else {
+                if (result->first != taskResult.first || result->second != taskResult.second) {
+                    throw std::runtime_error { "async error: inconsistent results" };
+                }
+            }
+        }
+        catch (...)
+        {
+            errors.push_back(std::current_exception());
+        }
+    }
+
+    return result.has_value() ? *result : std::make_pair(false, "async error: no valid result");
 }
 
 // NOLINTNEXTLINE
-TEST_F(Hlsl2GlslTest, VertexShaderES2)
+TEST_P(Hlsl2GlslTest, VertexShaderES2)
 {
     targetVersion = ETargetGLSL_ES_100;
     TEST_COMPILE_SHADER(VERTEX_SHADER, kVertexShaderSrc,
@@ -188,7 +234,7 @@ void main() {
 }
 
 // NOLINTNEXTLINE
-TEST_F(Hlsl2GlslTest, VertexShaderES3)
+TEST_P(Hlsl2GlslTest, VertexShaderES3)
 {
     targetVersion = ETargetGLSL_ES_300;
     TEST_COMPILE_SHADER(VERTEX_SHADER, kVertexShaderSrc,
@@ -220,7 +266,7 @@ void main() {
 }
 
 // NOLINTNEXTLINE
-TEST_F(Hlsl2GlslTest, FragmentShaderES2)
+TEST_P(Hlsl2GlslTest, FragmentShaderES2)
 {
     targetVersion = ETargetGLSL_ES_100;
     TEST_COMPILE_SHADER(FRAGMENT_SHADER, kFragmentShaderSrc,
@@ -252,7 +298,7 @@ void main() {
 }
 
 // NOLINTNEXTLINE
-TEST_F(Hlsl2GlslTest, FragmentShaderES3)
+TEST_P(Hlsl2GlslTest, FragmentShaderES3)
 {
     targetVersion = ETargetGLSL_ES_300;
     TEST_COMPILE_SHADER(FRAGMENT_SHADER, kFragmentShaderSrc,
@@ -281,5 +327,21 @@ void main() {
 // shadowmap:<none> type 26 arrsize 0
 )""");
 }
+
+// NOLINTNEXTLINE
+INSTANTIATE_TEST_SUITE_P(AsyncJobsSynchronized,
+                         Hlsl2GlslTest,
+                         testing::Combine(
+                             testing::Values(1, 2, 4),
+                             testing::Values(true)
+                         ));
+
+// NOLINTNEXTLINE
+INSTANTIATE_TEST_SUITE_P(AsyncJobs,
+                         Hlsl2GlslTest,
+                         testing::Combine(
+                             testing::Values(0, 1, 4, 8, 16, 32, 64, 256, 512, 1024),
+                             testing::Values(false)
+                         ));
 
 } // namespace
