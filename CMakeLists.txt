@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.24)
 
 project(hlsl2glslfork C CXX)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
+if(PROJECT_IS_TOP_LEVEL)
+  include(ExtractSymbols)
+  include(Sanitizers)
+endif()
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)

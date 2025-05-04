@@ -6,7 +6,6 @@
 *.perspectivev3
 *.xcworkspace
 xcuserdata
-*.cmake
 *.wwdb
 .svn/
 .DS_Store
