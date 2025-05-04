@@ -6,7 +6,8 @@
 #include "ParseHelper.h"
 #include "../Include/InitializeParseContext.h"
 #include "osinclude.h"
-#include <stdarg.h>
+#include <cassert>
+#include <cstdarg>
 
 namespace hlsl2glsl
 {
@@ -1399,7 +1400,7 @@ TIntermTyped* TParseContext::addConstructor(TIntermNode* node, const TType* type
 	if (node == 0)
 		return 0;
 	
-	TTypeList& struct_members = *type->getStruct();
+	TTypeList* struct_members = type->getStruct();
 	TIntermAggregate* aggregate = node->getAsAggregate();
 	if (aggregate && aggregate->getOp() == EOpNull) {
 		
@@ -1416,7 +1417,10 @@ TIntermTyped* TParseContext::addConstructor(TIntermNode* node, const TType* type
 			if (type->isArray())
 				p = constructBuiltIn(&element_type, op, p, node->getLine(), true);
 			else if (op == EOpConstructStruct)
-				p = constructStruct(p, struct_members[i].type, i+1, node->getLine(), true);
+			{
+				assert(struct_members && i < struct_members->size());
+				p = constructStruct(p, (*struct_members)[i].type, i+1, node->getLine(), true);
+			}
 			else
 				p = constructBuiltIn(type, op, p, node->getLine(), true);
 			
@@ -1436,7 +1440,8 @@ TIntermTyped* TParseContext::addConstructor(TIntermNode* node, const TType* type
 		return constructBuiltIn(type, op, node, node->getLine(), true);
 	else if (op == EOpConstructStruct)
 	{
-		TType* firstPrimitiveType = struct_members[0].type;
+		assert(struct_members);
+		TType* firstPrimitiveType = (*struct_members)[0].type;
 		while (firstPrimitiveType->getBasicType() == EbtStruct)
 		{
 			firstPrimitiveType = (*firstPrimitiveType->getStruct())[0].type;
