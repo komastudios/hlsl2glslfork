@@ -30,6 +30,7 @@ struct TParseContext
 	, lexAfterType(false)
 	, loopNestingLevel(0)
 	, inTypeParen(false)
+	, preprocessor(nullptr)
 	{
 	}
 	
@@ -103,6 +104,7 @@ public:
 	const TType* currentFunctionType;  // the return type of the function that's currently being parsed
 	bool functionReturnsValue;   // true if a non-void function has a return
 	bool AfterEOF;
+	void* preprocessor;          // Pointer to the current preprocessor (for thread safety)
 };
 
 int PaParseString(char* source, TParseContext&, Hlsl2Glsl_ParseCallbacks* = NULL);

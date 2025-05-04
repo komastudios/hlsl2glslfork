@@ -27,8 +27,18 @@ Jutta Degener, 1995
 
 namespace hlsl2glsl
 {
-extern void yyerror(hlsl2glsl::TParseContext&, const char*);
+// GlobalParseContext is handled via GetGlobalParseContext() which uses OS thread-local storage
 }
+
+// Declaration of function signatures with extern "C" linkage
+#ifdef __cplusplus
+extern "C" {
+#endif
+void yyerror(void* parseContext, void* scanner, const char* s);
+int yyparse(void* parseContext, void* scanner);
+#ifdef __cplusplus
+}
+#endif
 
 using namespace hlsl2glsl;
 
@@ -58,6 +68,11 @@ using namespace hlsl2glsl;
 
 
 %}
+%define api.pure full
+%lex-param { void* scanner }
+%parse-param { void* parseContextPtr }
+%parse-param { void* scanner }
+
 %union {
     struct {
         hlsl2glsl::TSourceLoc line;
@@ -92,14 +107,32 @@ using namespace hlsl2glsl;
     } interm;
 }
 
+%code requires {
+// No special requirements in non-reentrant mode
+}
+
 %{
-extern int yylex(YYSTYPE*, TParseContext&);
+extern int hlsl2glsl_yylex(YYSTYPE*, void*);
+int yylex(YYSTYPE* yylval_param, void* scanner_param) {
+    return hlsl2glsl_yylex(yylval_param, scanner_param);
+}
 %}
 
-%parse-param { hlsl2glsl::TParseContext& parseContext}
-%lex-param { hlsl2glsl::TParseContext& parseContext }
+// Using global ParseContext reference in non-reentrant mode
+%{
+    #define parseContext (*(hlsl2glsl::TParseContext*)parseContextPtr)
+%}
 
-%define api.pure
+// Not using pure parser for now
+%{
+    // Declare YYLTYPE for the parser
+    typedef struct YYLTYPE {
+        int first_line;
+        int first_column;
+        int last_line;
+        int last_column;
+    } YYLTYPE;
+%}
 
 %expect 1 /* One shift reduce conflict because of if | else */
 %token <lex> CONST_QUAL STATIC_QUAL BOOL_TYPE FLOAT_TYPE INT_TYPE STRING_TYPE FIXED_TYPE HALF_TYPE

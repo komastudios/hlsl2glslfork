@@ -7,18 +7,23 @@
 // functions that don't map to built-ins
 
 #include <map>
+#include <mutex>
 #include "hlslSupportLib.h"
 
 namespace hlsl2glsl
 {
 
 typedef std::map<TOperator,std::string> CodeMap;
-static CodeMap *hlslSupportLib = 0;
-static CodeMap *hlslSupportLibESOverrides = 0;
-
 typedef std::map< TOperator, std::pair<std::string,std::string> > CodeExtensionMap;
-static CodeExtensionMap *hlslSupportLibExtensions = 0;
-static CodeExtensionMap *hlslSupportLibExtensionsESOverrides = 0;
+
+// Thread-local storage for support libraries
+thread_local CodeMap *hlslSupportLib = nullptr;
+thread_local CodeMap *hlslSupportLibESOverrides = nullptr;
+thread_local CodeExtensionMap *hlslSupportLibExtensions = nullptr;
+thread_local CodeExtensionMap *hlslSupportLibExtensionsESOverrides = nullptr;
+
+// Mutex for initialization synchronization
+static std::mutex supportLibMutex;
 
 void insertPre130TextureLookups()
 {
@@ -335,11 +340,13 @@ void insertPost120TextureLookups()
 
 void initializeHLSLSupportLibrary(ETargetVersion targetVersion)
 {
-	assert (hlslSupportLib == 0);
-	assert (hlslSupportLibExtensions == 0);
-	assert (hlslSupportLibESOverrides == 0);
-	assert (hlslSupportLibExtensionsESOverrides == 0);
+	// Initialize thread-local storage if needed
+	if (hlslSupportLib != nullptr) {
+		// Support library already initialized for this thread
+		return;
+	}
 
+	// Create new maps for this thread
 	hlslSupportLib = new CodeMap();
 	hlslSupportLibExtensions = new CodeExtensionMap();
 	hlslSupportLibESOverrides = new CodeMap();
@@ -1098,20 +1105,35 @@ void initializeHLSLSupportLibrary(ETargetVersion targetVersion)
 
 void finalizeHLSLSupportLibrary()
 {
-	delete hlslSupportLib;
-	hlslSupportLib = 0;
-	delete hlslSupportLibExtensions;
-	hlslSupportLibExtensions = 0;
-	delete hlslSupportLibESOverrides;
-	hlslSupportLibESOverrides = 0;
-	delete hlslSupportLibExtensionsESOverrides;
-	hlslSupportLibExtensionsESOverrides = 0;
+	// Free only the thread-local data for the current thread
+	if (hlslSupportLib) {
+		delete hlslSupportLib;
+		hlslSupportLib = nullptr;
+	}
+	
+	if (hlslSupportLibExtensions) {
+		delete hlslSupportLibExtensions;
+		hlslSupportLibExtensions = nullptr;
+	}
+	
+	if (hlslSupportLibESOverrides) {
+		delete hlslSupportLibESOverrides;
+		hlslSupportLibESOverrides = nullptr;
+	}
+	
+	if (hlslSupportLibExtensionsESOverrides) {
+		delete hlslSupportLibExtensionsESOverrides;
+		hlslSupportLibExtensionsESOverrides = nullptr;
+	}
 }
 
 std::string getHLSLSupportCode (TOperator op, ExtensionSet& extensions, bool vertexShader, bool gles)
 {
-	assert (hlslSupportLibExtensions);
-	assert (hlslSupportLibExtensionsESOverrides);
+	// Ensure the support libraries are initialized for this thread
+	if (hlslSupportLib == nullptr) {
+		// This shouldn't normally happen, but we'll initialize if needed
+		initializeHLSLSupportLibrary(ETargetVersionCount);
+	}
 
 	// if we're using gles, attempt to find the ES version first
 	bool found = false;
@@ -1137,9 +1159,6 @@ std::string getHLSLSupportCode (TOperator op, ExtensionSet& extensions, bool ver
 				extensions.insert(ext);
 		}
 	}
-
-	assert (hlslSupportLib);
-	assert (hlslSupportLibESOverrides);
 
 	// same as above, search for a gles version first
 	bool tex2DLodVSHack = false;

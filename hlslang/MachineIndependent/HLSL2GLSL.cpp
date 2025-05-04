@@ -400,17 +400,19 @@ int C_DECL Hlsl2Glsl_Translate(
    HlslCrossCompiler* compiler = handle;
    compiler->infoSink.info.erase();
 
-   // \todo [2013-05-14 pyry] Maintain different support library per target version.
+   // Initialize the support library for this thread
    initializeHLSLSupportLibrary(targetVersion);
 
 	if (!compiler->IsASTTransformed() || !compiler->IsGlslProduced())
 	{
 		compiler->infoSink.info.message(EPrefixError, "Shader does not have valid object code.");
+		finalizeHLSLSupportLibrary();
 		return 0;
 	}
 
    bool ret = compiler->GetLinker()->link(compiler, entry, targetVersion, options);
 
+   // Clean up support library for this thread
    finalizeHLSLSupportLibrary();
 
    return ret ? 1 : 0;

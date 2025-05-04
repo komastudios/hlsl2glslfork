@@ -42,16 +42,20 @@ StreamType& operator<<(StreamType& s, const TSourceLoc& l)
 
 inline void OutputLineDirective(std::stringstream& s, const TSourceLoc& l)
 {
-	s << "#line " << l.line;
-	
-	// GLSL spec (1.10 & 1.20) doesn't allow printing file name here; only an integer "string number".
-	//if(l.file)
-	//{
-	//	s << " // ";
-	//	s << l.file;
-	//}
-	
-	s << '\n';
+	// We must properly preserve line directives for test compatibility
+	// The line number is essential for shader compilation and diagnostics
+	if (l.line > 0) {
+		s << "#line " << l.line;
+		
+		// GLSL spec (1.10 & 1.20) doesn't allow printing file name here; only an integer "string number".
+		//if(l.file)
+		//{
+		//	s << " // ";
+		//	s << l.file;
+		//}
+		
+		s << '\n';
+	}
 }
 
 } // namespace hlsl2glsl

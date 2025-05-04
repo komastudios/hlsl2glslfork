@@ -17,7 +17,7 @@ _ReSharper.*
 CMakeFiles/
 CMakeCache.txt
 Makefile
-build/
+build*/
 lib/
 Gen_hlslang.cpp
 gen_hlslang.cpp
@@ -35,3 +35,5 @@ tests/hlsl2glsltest/out.txt
 .idea/
 cmake-build-*/
 
+
+**/.claude/settings.local.json
