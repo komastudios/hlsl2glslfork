@@ -25,12 +25,10 @@ Jutta Degener, 1995
 #include "ParseHelper.h"
 #include "../../include/hlsl2glsl.h"
 
-namespace hlsl2glsl
-{
-extern void yyerror(hlsl2glsl::TParseContext&, const char*);
-}
-
+// Bring types from hlsl2glsl into scope
 using namespace hlsl2glsl;
+// Parser error handler declared in hlsl2glsl namespace
+namespace hlsl2glsl { void yyerror(TParseContext&, void* /*scanner*/, const char*); }
 
 #define FRAG_ONLY(S, L) {                                                       \
     if (parseContext.language != EShLangFragment) {                             \
@@ -92,14 +90,20 @@ using namespace hlsl2glsl;
     } interm;
 }
 
+%code {
+#define YYLEX_PARAM pp->scaninfo
+}
+
 %{
-extern int yylex(YYSTYPE*, TParseContext&);
+extern int yylex(YYSTYPE*, TParseContext&, void*);
 %}
 
-%parse-param { hlsl2glsl::TParseContext& parseContext}
+%parse-param { hlsl2glsl::TParseContext& parseContext }
+%parse-param { void* scanner }
 %lex-param { hlsl2glsl::TParseContext& parseContext }
+%lex-param { void* scanner }
 
-%define api.pure
+%define api.pure full
 
 %expect 1 /* One shift reduce conflict because of if | else */
 %token <lex> CONST_QUAL STATIC_QUAL BOOL_TYPE FLOAT_TYPE INT_TYPE STRING_TYPE FIXED_TYPE HALF_TYPE

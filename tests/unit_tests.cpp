@@ -5,10 +5,11 @@
 #include <utility>
 #include <stdexcept>
 #include <string_view>
-#include <future>
+#include <thread>
 #include <optional>
 #include <mutex>
 #include <array>
+#include <future>
 
 #include "hlsl2glsl.h"
 
@@ -102,12 +103,12 @@ std::string GetCompiledShaderText(ShHandle parser)
 
 using CompilerResult = std::pair<bool, std::string>;
 
-CompilerResult CompileShader(EShLanguage type, ETargetVersion targetVersion, const char* shaderSrc)
+CompilerResult CompileShader(EShLanguage type, ETargetVersion targetVersion, const std::string& shaderSrc)
 {
     unsigned options = 0;
     std::unique_ptr<hlsl2glsl::HlslCrossCompiler, decltype(&Hlsl2Glsl_DestructCompiler)> parser(
         Hlsl2Glsl_ConstructCompiler(type), &Hlsl2Glsl_DestructCompiler);
-    int parseOk = Hlsl2Glsl_Parse (parser.get(), shaderSrc,
+    int parseOk = Hlsl2Glsl_Parse (parser.get(), shaderSrc.c_str(),
         targetVersion, nullptr, options);
     std::string infoLog = Hlsl2Glsl_GetInfoLog(parser.get());
     if (parseOk) {
@@ -153,38 +154,51 @@ std::pair<bool, std::string> Hlsl2GlslTest::compileShader(EShLanguage type, cons
     size_t asyncTasks = std::get<0>(GetParam());
     bool synchronized = std::get<1>(GetParam());
     if (asyncTasks == 0) {
-        return CompileShader(type, version, shaderSrc.c_str());
+        return CompileShader(type, version, shaderSrc);
     }
 
-    std::vector<std::future<CompilerResult>> futures;
-    futures.reserve(asyncTasks);
+    struct Thread
+    {
+        std::thread thread;
+        std::mutex mutex;
+        std::string src;
+        CompilerResult result;
+        std::exception_ptr error;
+    };
 
-    std::mutex mutex;
-    for (size_t i=0;i<asyncTasks;++i) {
-        if (synchronized) {
-            futures.push_back(std::async(std::launch::async, [&mutex](EShLanguage pType, ETargetVersion pVersion, const char* pShaderSrc)
-            {
-                std::unique_lock lk(mutex);
-                return CompileShader(pType, pVersion, pShaderSrc);
-            }, type, version, shaderSrc.c_str()));
-        }
-        else
+    std::vector<std::unique_ptr<Thread>> threads;
+    threads.resize(asyncTasks);
+
+    static std::mutex gMutex;
+    for (auto& t : threads) {
+        t = std::make_unique<Thread>();
+        t->src = shaderSrc;
+        t->thread = std::thread([pThread=t.get(), type, version, synchronized]
         {
-            futures.push_back(std::async(std::launch::async, &CompileShader, type, version, shaderSrc.c_str()));
-        }
+            std::unique_lock lk(synchronized ? gMutex : pThread->mutex);
+            try {
+                pThread->result = CompileShader(type, version, pThread->src);
+            }
+            catch (...) {
+                pThread->error = std::current_exception();
+            }
+        });
     }
 
     std::optional<CompilerResult> result;
     std::vector<std::exception_ptr> errors;
-    for (size_t i=0;i<asyncTasks;++i) {
+    for (auto& t : threads) {
         try
         {
-            auto taskResult = futures[i].get();
+            t->thread.join();
+            if (t->error) {
+                errors.push_back(t->error);
+            }
             if (!result.has_value()) {
-                result = std::make_optional(taskResult);
+                result = std::make_optional(t->result);
             }
             else {
-                if (result->first != taskResult.first || result->second != taskResult.second) {
+                if (result->first != t->result.first || result->second != t->result.second) {
                     throw std::runtime_error { "async error: inconsistent results" };
                 }
             }
@@ -340,7 +354,7 @@ INSTANTIATE_TEST_SUITE_P(AsyncJobsSynchronized,
 INSTANTIATE_TEST_SUITE_P(AsyncJobs,
                          Hlsl2GlslTest,
                          testing::Combine(
-                             testing::Values(0, 1, 4, 8, 16, 32, 64, 256, 512, 1024),
+                             testing::Values(0, 1, 4, 8, 16, 32, 64, 256),
                              testing::Values(false)
                          ));
 

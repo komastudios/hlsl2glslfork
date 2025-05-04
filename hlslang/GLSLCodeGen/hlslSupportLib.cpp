@@ -7,18 +7,19 @@
 // functions that don't map to built-ins
 
 #include <map>
+#include <memory>
 #include "hlslSupportLib.h"
 
 namespace hlsl2glsl
 {
 
 typedef std::map<TOperator,std::string> CodeMap;
-static CodeMap *hlslSupportLib = 0;
-static CodeMap *hlslSupportLibESOverrides = 0;
+thread_local std::unique_ptr<CodeMap> hlslSupportLib;
+thread_local std::unique_ptr<CodeMap> hlslSupportLibESOverrides;
 
 typedef std::map< TOperator, std::pair<std::string,std::string> > CodeExtensionMap;
-static CodeExtensionMap *hlslSupportLibExtensions = 0;
-static CodeExtensionMap *hlslSupportLibExtensionsESOverrides = 0;
+thread_local std::unique_ptr<CodeExtensionMap> hlslSupportLibExtensions;
+thread_local std::unique_ptr<CodeExtensionMap> hlslSupportLibExtensionsESOverrides;
 
 void insertPre130TextureLookups()
 {
@@ -335,15 +336,21 @@ void insertPost120TextureLookups()
 
 void initializeHLSLSupportLibrary(ETargetVersion targetVersion)
 {
-	assert (hlslSupportLib == 0);
-	assert (hlslSupportLibExtensions == 0);
-	assert (hlslSupportLibESOverrides == 0);
-	assert (hlslSupportLibExtensionsESOverrides == 0);
+	assert(!hlslSupportLib);
+	assert(!hlslSupportLibExtensions);
+	assert(!hlslSupportLibESOverrides);
+	assert(!hlslSupportLibExtensionsESOverrides);
 
-	hlslSupportLib = new CodeMap();
-	hlslSupportLibExtensions = new CodeExtensionMap();
-	hlslSupportLibESOverrides = new CodeMap();
-	hlslSupportLibExtensionsESOverrides = new CodeExtensionMap();
+	// Initialize thread-local storage if needed
+	if (hlslSupportLib) {
+		// Support library already initialized for this thread
+		return;
+	}
+
+	hlslSupportLib = std::make_unique<CodeMap>();
+	hlslSupportLibExtensions = std::make_unique<CodeExtensionMap>();
+	hlslSupportLibESOverrides = std::make_unique<CodeMap>();
+	hlslSupportLibExtensionsESOverrides = std::make_unique<CodeExtensionMap>();
 
     //ACS: some texture lookup types were deprecated after 1.20, and 1.40 won't accept them
     bool usePost120TextureLookups = false;
@@ -1098,14 +1105,10 @@ void initializeHLSLSupportLibrary(ETargetVersion targetVersion)
 
 void finalizeHLSLSupportLibrary()
 {
-	delete hlslSupportLib;
-	hlslSupportLib = 0;
-	delete hlslSupportLibExtensions;
-	hlslSupportLibExtensions = 0;
-	delete hlslSupportLibESOverrides;
-	hlslSupportLibESOverrides = 0;
-	delete hlslSupportLibExtensionsESOverrides;
-	hlslSupportLibExtensionsESOverrides = 0;
+	hlslSupportLib.reset();
+	hlslSupportLibExtensions.reset();
+	hlslSupportLibESOverrides.reset();
+	hlslSupportLibExtensionsESOverrides.reset();
 }
 
 std::string getHLSLSupportCode (TOperator op, ExtensionSet& extensions, bool vertexShader, bool gles)

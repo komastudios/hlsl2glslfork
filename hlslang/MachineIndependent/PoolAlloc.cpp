@@ -12,7 +12,7 @@
 namespace hlsl2glsl
 {
 
-static OS_TLSIndex s_TLSPoolAlloc;
+static OS_TLSIndex s_TLSPoolAlloc = OS_INVALID_TLS_INDEX;
 
 
 void InitializeGlobalPools()
@@ -47,6 +47,7 @@ bool InitializePoolIndex()
 void FreePoolIndex()
 {
 	OS_FreeTLSIndex(s_TLSPoolAlloc);
+    s_TLSPoolAlloc = OS_INVALID_TLS_INDEX;
 }
 
 TPoolAllocator& GetGlobalPoolAllocator()
