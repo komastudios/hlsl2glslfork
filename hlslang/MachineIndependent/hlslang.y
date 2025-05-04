@@ -95,7 +95,7 @@ namespace hlsl2glsl { void yyerror(TParseContext&, void* /*scanner*/, const char
 }
 
 %{
-extern int yylex(YYSTYPE*, TParseContext&, void*);
+extern int hlsl2glsl_yylex(YYSTYPE*, TParseContext&, void*);
 %}
 
 %parse-param { hlsl2glsl::TParseContext& parseContext }
@@ -104,6 +104,7 @@ extern int yylex(YYSTYPE*, TParseContext&, void*);
 %lex-param { void* scanner }
 
 %define api.pure full
+%name-prefix "hlsl2glsl_yy"
 
 %expect 1 /* One shift reduce conflict because of if | else */
 %token <lex> CONST_QUAL STATIC_QUAL BOOL_TYPE FLOAT_TYPE INT_TYPE STRING_TYPE FIXED_TYPE HALF_TYPE

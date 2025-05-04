@@ -50,8 +50,8 @@ int yy_input(char* buf, int max_size, yyscan_t yyscanner);
 thread_local TSourceLoc lexlineno = { 0, 0 };
 }
 
-extern int yyparse(hlsl2glsl::TParseContext*, yyscan_t yyscanner);
-#define YY_DECL int yylex(YYSTYPE * yylval_param, hlsl2glsl::TParseContext& parseContext, yyscan_t yyscanner)
+extern int hlsl2glsl_yyparse(hlsl2glsl::TParseContext*, yyscan_t yyscanner);
+#define YY_DECL int hlsl2glsl_yylex(YYSTYPE * yylval_param, hlsl2glsl::TParseContext& parseContext, yyscan_t yyscanner)
 
  
 #define YY_INPUT(buf,result,max_size) (result = hlsl2glsl::yy_input(buf, max_size, yyscanner))
@@ -61,6 +61,7 @@ extern int yyparse(hlsl2glsl::TParseContext*, yyscan_t yyscanner);
 %option noyywrap
 %option never-interactive
 %option yylineno reentrant bison-bridge
+%option prefix="hlsl2glsl_yy"
 %option outfile="Gen_hlslang.cpp"
 %x FIELDS
 
@@ -503,7 +504,7 @@ int PaParseString(char* source, TParseContext& parseContextLocal, Hlsl2Glsl_Pars
         if (sourceLen >= 0) {
             // Call the parser with the scanner
             // The parser will call yylex with the scanner
-            yyparse(parseContextLocal, scanner);
+            hlsl2glsl_yyparse(parseContextLocal, scanner);
 
             if (parseContextLocal.recoveredFromError || parseContextLocal.numErrors > 0)
                 result = 1;
@@ -534,7 +535,7 @@ int PaParseString(char* source, TParseContext& parseContextLocal, Hlsl2Glsl_Pars
 }
 
 // Parser error handling: match Bison error calls (parseContext, scanner, message)
-void yyerror(TParseContext& parseContext, void* /*scanner*/, const char *s)
+void hlsl2glsl_yyerror(TParseContext& parseContext, void* /*scanner*/, const char *s)
 { 
     // Report syntax error; scanner parameter unused
     parseContext.error(lexlineno, "syntax error", "", s, "");
