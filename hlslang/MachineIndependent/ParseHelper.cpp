@@ -8,6 +8,7 @@
 #include "osinclude.h"
 #include <cassert>
 #include <cstdarg>
+#include <memory>
 
 namespace hlsl2glsl
 {
@@ -1882,97 +1883,47 @@ TIntermAggregate* TParseContext::mergeAggregates( TIntermAggregate *left, TInter
    return node;
 }
 
-OS_TLSIndex GlobalParseContextIndex = OS_INVALID_TLS_INDEX;
+thread_local std::unique_ptr<TThreadParseContext> sParseContext;
 
 bool InitializeParseContextIndex()
 {
-   if (GlobalParseContextIndex != OS_INVALID_TLS_INDEX)
-   {
-      assert(0 && "InitializeParseContextIndex(): Parse Context already initalised");
-      return false;
-   }
-
-   //
-   // Allocate a TLS index.
-   //
-   GlobalParseContextIndex = OS_AllocTLSIndex();
-
-   if (GlobalParseContextIndex == OS_INVALID_TLS_INDEX)
-   {
-      assert(0 && "InitializeParseContextIndex(): Parse Context already initalised");
-      return false;
-   }
-
    return true;
 }
 
 bool InitializeGlobalParseContext()
 {
-   if (GlobalParseContextIndex == OS_INVALID_TLS_INDEX)
-   {
-      assert(0 && "InitializeGlobalParseContext(): Parse Context index not initalised");
-      return false;
-   }
-
-   TThreadParseContext *lpParseContext = static_cast<TThreadParseContext *>(OS_GetTLSValue(GlobalParseContextIndex));
-   if (lpParseContext != 0)
+   if (sParseContext)
    {
       assert(0 && "InitializeParseContextIndex(): Parse Context already initalised");
       return false;
    }
 
-   TThreadParseContext *lpThreadData = new TThreadParseContext();
-   if (lpThreadData == 0)
-   {
-      assert(0 && "InitializeGlobalParseContext(): Unable to create thread parse context");
-      return false;
-   }
-
-   lpThreadData->lpGlobalParseContext = 0;
-   OS_SetTLSValue(GlobalParseContextIndex, lpThreadData);
+   sParseContext = std::make_unique<TThreadParseContext>();
+   sParseContext->lpGlobalParseContext = nullptr;
 
    return true;
 }
 
 TParseContextPointer& GetGlobalParseContext()
 {
-   //
    // Minimal error checking for speed
-   //
-
-   TThreadParseContext *lpParseContext = static_cast<TThreadParseContext *>(OS_GetTLSValue(GlobalParseContextIndex));
-
-   return lpParseContext->lpGlobalParseContext;
+   assert(sParseContext);
+   return sParseContext->lpGlobalParseContext;
 }
 
 bool FreeParseContext()
 {
-   if (GlobalParseContextIndex == OS_INVALID_TLS_INDEX)
-   {
-      assert(0 && "FreeParseContext(): Parse Context index not initalised");
-      return false;
-   }
-
-   TThreadParseContext *lpParseContext = static_cast<TThreadParseContext *>(OS_GetTLSValue(GlobalParseContextIndex));
-   if (lpParseContext)
-      delete lpParseContext;
-
+   sParseContext.reset();
    return true;
 }
 
 bool FreeParseContextIndex()
 {
-   OS_TLSIndex tlsiIndex = GlobalParseContextIndex;
-
-   if (GlobalParseContextIndex == OS_INVALID_TLS_INDEX)
-   {
-      assert(0 && "FreeParseContextIndex(): Parse Context index not initalised");
-      return false;
+   if (sParseContext) {
+	   return false;
    }
 
-   GlobalParseContextIndex = OS_INVALID_TLS_INDEX;
-
-   return OS_FreeTLSIndex(tlsiIndex);
+   return true;
 }
 
 } // namespace glslang

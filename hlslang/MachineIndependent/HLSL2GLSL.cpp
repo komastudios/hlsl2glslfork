@@ -117,7 +117,7 @@ TSymbolTable SymbolTables[EShLangCount];
 
 
 // Global pool allocator (per process)
-TPoolAllocator* PerProcessGPA = 0;
+std::shared_ptr<TPoolAllocator> PerProcessGPA;
 
 
 /// Initializize the symbol table
@@ -226,29 +226,28 @@ int C_DECL Hlsl2Glsl_Initialize()
 
    if (!PerProcessGPA)
    {
-      TPoolAllocator *builtInPoolAllocator = new TPoolAllocator();
+      auto builtInPoolAllocator = std::make_shared<TPoolAllocator>();
       builtInPoolAllocator->push();
-      TPoolAllocator* gPoolAllocator = &GlobalPoolAllocator;
-      SetGlobalPoolAllocatorPtr(builtInPoolAllocator);
+
+   	  auto gPoolAllocator = SetGlobalPoolAllocator(builtInPoolAllocator);
 
       TSymbolTable symTables[EShLangCount];
       GenerateBuiltInSymbolTable(infoSink, symTables, EShLangCount);
 
-      PerProcessGPA = new TPoolAllocator();
+      PerProcessGPA = std::make_shared<TPoolAllocator>();
       PerProcessGPA->push();
-      SetGlobalPoolAllocatorPtr(PerProcessGPA);
+      SetGlobalPoolAllocator(PerProcessGPA);
 
       SymbolTables[EShLangVertex].copyTable(symTables[EShLangVertex]);
       SymbolTables[EShLangFragment].copyTable(symTables[EShLangFragment]);
 
-      SetGlobalPoolAllocatorPtr(gPoolAllocator);
+      SetGlobalPoolAllocator(gPoolAllocator);
 
       symTables[EShLangVertex].pop();
       symTables[EShLangFragment].pop();
 
       builtInPoolAllocator->popAll();
-      delete builtInPoolAllocator;        
-
+   	  builtInPoolAllocator.reset();
    }
 
    return 1;
@@ -265,8 +264,7 @@ void C_DECL Hlsl2Glsl_Shutdown()
 		SymbolTables[EShLangFragment].pop();
 		
 		PerProcessGPA->popAll();
-		delete PerProcessGPA;
-		PerProcessGPA = NULL;
+		PerProcessGPA.reset();
 	}
 	
 	DetachThread();

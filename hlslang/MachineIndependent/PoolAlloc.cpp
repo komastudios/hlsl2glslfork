@@ -9,56 +9,51 @@
 #include "../Include/InitializeGlobals.h"
 #include "osinclude.h"
 
+#include <memory>
+
 namespace hlsl2glsl
 {
 
-static OS_TLSIndex s_TLSPoolAlloc = OS_INVALID_TLS_INDEX;
-
+// static OS_TLSIndex s_TLSPoolAlloc = OS_INVALID_TLS_INDEX;
+thread_local std::shared_ptr<TPoolAllocator> sPoolAlloc;
 
 void InitializeGlobalPools()
 {
-	TPoolAllocator* alloc = static_cast<TPoolAllocator*>(OS_GetTLSValue(s_TLSPoolAlloc));
-	if (alloc)
-		return;
-	
-	alloc = new TPoolAllocator();
-	OS_SetTLSValue(s_TLSPoolAlloc, alloc);
-	alloc->push();
+    if (sPoolAlloc)
+        return;
+
+    sPoolAlloc = std::make_unique<TPoolAllocator>();
+	sPoolAlloc->push();
 }
 
 void FreeGlobalPools()
 {
-	TPoolAllocator* alloc = static_cast<TPoolAllocator*>(OS_GetTLSValue(s_TLSPoolAlloc));
-	if (!alloc)
+	if (!sPoolAlloc)
 		return;
 
-	alloc->popAll();
-	delete alloc;
-	OS_SetTLSValue(s_TLSPoolAlloc, NULL);
+	sPoolAlloc->popAll();
+   sPoolAlloc.reset();
 }
 
 bool InitializePoolIndex()
 {
-	if ((s_TLSPoolAlloc = OS_AllocTLSIndex()) == OS_INVALID_TLS_INDEX)
-		return false;
 	return true;
 }
 
 void FreePoolIndex()
 {
-	OS_FreeTLSIndex(s_TLSPoolAlloc);
-    s_TLSPoolAlloc = OS_INVALID_TLS_INDEX;
 }
 
 TPoolAllocator& GetGlobalPoolAllocator()
 {
-	TPoolAllocator* alloc = static_cast<TPoolAllocator*>(OS_GetTLSValue(s_TLSPoolAlloc));
-	return *alloc;
+	assert(sPoolAlloc);
+	return *sPoolAlloc;
 }
 
-void SetGlobalPoolAllocatorPtr(TPoolAllocator* alloc)
+std::shared_ptr<TPoolAllocator> SetGlobalPoolAllocator(std::shared_ptr<TPoolAllocator> alloc)
 {
-	OS_SetTLSValue(s_TLSPoolAlloc, alloc);
+   std::swap(sPoolAlloc, alloc);
+   return alloc;
 }
 
 

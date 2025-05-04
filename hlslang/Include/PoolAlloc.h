@@ -24,15 +24,16 @@
 // STL containers can use this allocator by using the pool_allocator
 // class as the allocator (second) template argument.
 
-#include <stddef.h>
+#include <cstddef>
 #include <vector>
+#include <memory>
 
 namespace hlsl2glsl
 {
 
 // -----------------------------------------------------------------------------
 
-class TPoolAllocator {
+class TPoolAllocator : public std::enable_shared_from_this<TPoolAllocator> {
 public:
    TPoolAllocator();
    // Use popAll() or pop() to free up memory!
@@ -82,10 +83,8 @@ private:
 	int numCalls;           // just an interesting statistic
 	size_t totalBytes;      // just an interesting statistic
 
-private:
-	// no copying
-	TPoolAllocator& operator=(const TPoolAllocator&);
-	TPoolAllocator(const TPoolAllocator&);
+	TPoolAllocator& operator=(const TPoolAllocator&) = delete;
+	explicit TPoolAllocator(const TPoolAllocator&) = delete;
 };
 
 
@@ -98,7 +97,7 @@ extern TPoolAllocator& GetGlobalPoolAllocator();
 #define GlobalPoolAllocator GetGlobalPoolAllocator()
 
 
-void SetGlobalPoolAllocatorPtr(TPoolAllocator* poolAllocator);
+std::shared_ptr<TPoolAllocator> SetGlobalPoolAllocator(std::shared_ptr<TPoolAllocator> alloc);
 
 
 
