@@ -6,6 +6,8 @@ function(target_extract_symbols
     # Find Python
     find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
+    find_program(PDM_EXECUTABLE pdm REQUIRED)
+
     # Get the absolute path to the script
     set(EXTRACT_SCRIPT "${PYTHON_SCRIPT_DIR}/extract_symbols.py")
     if(NOT EXISTS "${EXTRACT_SCRIPT}")

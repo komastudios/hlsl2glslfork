@@ -19,6 +19,8 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(BUILD_HLSL2GLSLTEST "Build the test executable" ON)
 option(BUILD_TESTING "Build unit tests" ON)
 
+option(HLSL2GLSL_EXTRACT_SYMBOLS "Extract symbols from the library" OFF)
+
 find_package(BISON 3.0 REQUIRED)
 find_package(FLEX REQUIRED)
 
@@ -184,6 +186,10 @@ target_include_directories(hlsl2glsl
     ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/MachineIndependent
     ${OSDEPENDENT_DIR}
 )
+
+if(HLSL2GLSL_EXTRACT_SYMBOLS)
+  target_extract_symbols(hlsl2glsl "${CMAKE_CURRENT_BINARY_DIR}/symbols.txt" "${CMAKE_SOURCE_DIR}/tools")
+endif()
 
 # -------------------------------------------------------------------
 #  test executable
