@@ -16,7 +16,8 @@
 
 #include "../Include/InitializeGlobals.h"
 #include "../Include/InitializeParseContext.h"
-#include "osinclude.h"
+
+#include <atomic>
 
 using namespace hlsl2glsl;
 
@@ -24,19 +25,13 @@ using namespace hlsl2glsl;
 
 namespace {
 
-static OS_TLSIndex s_ThreadInitialized = OS_INVALID_TLS_INDEX;
+thread_local bool sThreadInitialized = false;
 
 
 static bool InitThread()
 {
-	if (s_ThreadInitialized == OS_INVALID_TLS_INDEX)
-	{
-		assert(0 && "InitThread(): Process hasn't been initalised.");
-		return false;
-	}
-
 	// already initialized?
-	if (OS_GetTLSValue(s_ThreadInitialized) != 0)
+	if (sThreadInitialized)
 		return true;
 	
 	// initialize per-thread data
@@ -45,39 +40,13 @@ static bool InitThread()
 	if (!InitializeGlobalParseContext())
 		return false;
 	
-	if (!OS_SetTLSValue(s_ThreadInitialized, (void *)1))
-	{
-		assert(0 && "InitThread(): Unable to set init flag.");
-		return false;
-	}
+	sThreadInitialized = true;
 	return true;
 }
 
 
 static bool InitProcess()
 {
-	if (s_ThreadInitialized != OS_INVALID_TLS_INDEX)
-		return true;
-	
-	s_ThreadInitialized = OS_AllocTLSIndex();
-	if (s_ThreadInitialized == OS_INVALID_TLS_INDEX)
-	{
-		assert(0 && "InitProcess(): Failed to allocate TLS area for init flag");
-		return false;
-	}
-	
-	if (!InitializePoolIndex())
-	{
-		assert(0 && "InitProcess(): Failed to initalize global pool");
-		return false;
-	}
-	
-	if (!InitializeParseContextIndex())
-	{
-		assert(0 && "InitProcess(): Failed to initalize parse context");
-		return false;
-	}
-	
 	InitThread();
 	return true;
 }
@@ -85,17 +54,11 @@ static bool InitProcess()
 
 static bool DetachThread()
 {
-	if (s_ThreadInitialized == OS_INVALID_TLS_INDEX)
+	if (!sThreadInitialized)
 		return true;
-	if (OS_GetTLSValue(s_ThreadInitialized) == 0)
-		return true;
-	
+
 	bool success = true;
-	if (!OS_SetTLSValue(s_ThreadInitialized, (void *)0))
-	{
-		assert(0 && "DetachThread(): Unable to clear init flag.");
-		success = false;
-	}
+	sThreadInitialized = false;
 	
 	FreeGlobalPools();
 	
@@ -255,9 +218,6 @@ int C_DECL Hlsl2Glsl_Initialize()
 
 void C_DECL Hlsl2Glsl_Shutdown()
 {
-	if (s_ThreadInitialized == OS_INVALID_TLS_INDEX)
-		return;
-	
 	if (PerProcessGPA)
 	{
 		SymbolTables[EShLangVertex].pop();
@@ -268,12 +228,6 @@ void C_DECL Hlsl2Glsl_Shutdown()
 	}
 	
 	DetachThread();
-	
-	FreePoolIndex();
-	FreeParseContextIndex();
-	
-	OS_FreeTLSIndex(s_ThreadInitialized);
-	s_ThreadInitialized = OS_INVALID_TLS_INDEX;
 }
 
 

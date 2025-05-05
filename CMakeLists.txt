@@ -117,42 +117,16 @@ set(MACHINE_INDEPENDENT_CPP_FILES
 #  OS-specific files & flags
 # -------------------------------------------------------------------
 if(WIN32)
-  set(OSDEPENDENT_DIR
-          ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/OSDependent/Windows)
-  set(OSDEPENDENT_FILES
-          ${OSDEPENDENT_DIR}/osinclude.h
-          ${OSDEPENDENT_DIR}/ossource.cpp
-          ${OSDEPENDENT_DIR}/unistd.h
-  )
-  set(OSDEPENDENT_INCLUDE_DIR ${OSDEPENDENT_DIR})
-
   # add_definitions(-D_HAS_ITERATOR_DEBUGGING=0
   #         -D_SECURE_SCL=0
   #         -D_CRT_SECURE_NO_WARNINGS)
   set(TEST_LIBS opengl32)
 
 elseif(APPLE)
-  set(OSDEPENDENT_DIR
-          ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/OSDependent/Mac)
-  set(OSDEPENDENT_FILES
-          ${OSDEPENDENT_DIR}/osinclude.h
-          ${OSDEPENDENT_DIR}/ossource.cpp
-  )
-  set(OSDEPENDENT_INCLUDE_DIR ${OSDEPENDENT_DIR})
-
   find_library(COCOA_LIBRARY Cocoa REQUIRED)
   find_library(OPENGL_LIBRARY OpenGL REQUIRED)
   set(TEST_LIBS ${COCOA_LIBRARY} ${OPENGL_LIBRARY})
 else()
-  # assume UNIX / Linux
-  set(OSDEPENDENT_DIR
-          ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/OSDependent/Linux)
-  set(OSDEPENDENT_FILES
-          ${OSDEPENDENT_DIR}/osinclude.h
-          ${OSDEPENDENT_DIR}/ossource.cpp
-  )
-  set(OSDEPENDENT_INCLUDE_DIR ${OSDEPENDENT_DIR})
-
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb")
   set(TEST_LIBS GL glut GLEW pthread)
 endif()
@@ -165,7 +139,6 @@ add_library(hlsl2glsl
   ${GLSL_CODE_GEN_FILES}
   ${MACHINE_INDEPENDENT_FILES}
   ${MACHINE_INDEPENDENT_CPP_FILES}
-  ${OSDEPENDENT_FILES}
   ${BISON_HlslangParser_OUTPUTS}
   ${FLEX_HlslangLexer_OUTPUTS}
 )
@@ -184,7 +157,6 @@ target_include_directories(hlsl2glsl
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/hlslang
     ${CMAKE_CURRENT_SOURCE_DIR}/hlslang/MachineIndependent
-    ${OSDEPENDENT_DIR}
 )
 
 if(HLSL2GLSL_EXTRACT_SYMBOLS)
@@ -206,7 +178,6 @@ source_group("Header Files" FILES ${HEADER_FILES})
 source_group("GLSL Code Gen" FILES ${GLSL_CODE_GEN_FILES})
 source_group("Machine Independent" FILES ${MACHINE_INDEPENDENT_FILES})
 source_group("Machine Independent\\CPP" FILES ${MACHINE_INDEPENDENT_CPP_FILES})
-source_group("OSDependent" FILES ${OSDEPENDENT_FILES})
 
 # -------------------------------------------------------------------
 #  installation

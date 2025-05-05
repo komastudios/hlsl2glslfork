@@ -9,10 +9,8 @@
 namespace hlsl2glsl
 {
 
-bool InitializeParseContextIndex();
 bool InitializeGlobalParseContext();
 bool FreeParseContext();
-bool FreeParseContextIndex();
 
 } // namespace hlsl2glsl
 

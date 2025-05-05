@@ -10,8 +10,6 @@ namespace hlsl2glsl
 
 void InitializeGlobalPools();
 void FreeGlobalPools();
-bool InitializePoolIndex();
-void FreePoolIndex();
 
 } // namespace hlsl2glsl
 

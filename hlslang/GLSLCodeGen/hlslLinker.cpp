@@ -9,9 +9,8 @@
 #include "hlslCrossCompiler.h"
 
 #include "hlslSupportLib.h"
-#include "osinclude.h"
 #include <algorithm>
-#include <string.h>
+#include <cstring>
 #include <set>
 
 namespace hlsl2glsl

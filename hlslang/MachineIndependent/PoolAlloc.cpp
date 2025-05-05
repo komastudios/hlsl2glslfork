@@ -7,7 +7,6 @@
 #include "../Include/Common.h"
 
 #include "../Include/InitializeGlobals.h"
-#include "osinclude.h"
 
 #include <memory>
 
@@ -33,15 +32,6 @@ void FreeGlobalPools()
 
 	sPoolAlloc->popAll();
    sPoolAlloc.reset();
-}
-
-bool InitializePoolIndex()
-{
-	return true;
-}
-
-void FreePoolIndex()
-{
 }
 
 TPoolAllocator& GetGlobalPoolAllocator()

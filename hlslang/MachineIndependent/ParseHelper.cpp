@@ -5,7 +5,6 @@
 
 #include "ParseHelper.h"
 #include "../Include/InitializeParseContext.h"
-#include "osinclude.h"
 #include <cassert>
 #include <cstdarg>
 #include <memory>
@@ -357,7 +356,7 @@ void C_DECL TParseContext::error(TSourceLoc nLine, const char *szReason, const c
 
    va_start(marker, szExtraInfoFormat);
 
-   _vsnprintf(szExtraInfo, sizeof(szExtraInfo), szExtraInfoFormat, marker);
+   snprintf(szExtraInfo, sizeof(szExtraInfo), szExtraInfoFormat, marker);
 
    /* VC++ format: file(linenum) : error #: 'token' : extrainfo */
    infoSink.info.location(nLine);
@@ -1885,16 +1884,11 @@ TIntermAggregate* TParseContext::mergeAggregates( TIntermAggregate *left, TInter
 
 thread_local std::unique_ptr<TThreadParseContext> sParseContext;
 
-bool InitializeParseContextIndex()
-{
-   return true;
-}
-
 bool InitializeGlobalParseContext()
 {
    if (sParseContext)
    {
-      assert(0 && "InitializeParseContextIndex(): Parse Context already initalised");
+      assert(0 && "InitializeGlobalParseContext(): Parse Context already initalised");
       return false;
    }
 

@@ -12,7 +12,7 @@
    #include <sys/int_types.h>
    #define UINT_PTR uintptr_t
 #else
-   #include <stdint.h>
+   #include <cstdint>
    #define UINT_PTR uintptr_t
 #endif
 
@@ -27,13 +27,18 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <stdio.h>
+#include <cstdio>
 #include <sstream>
 
-#include <assert.h>
+#include <cassert>
 
 #include "PoolAlloc.h"
 #include "../MachineIndependent/preprocessor/sourceloc.h"
+
+#if !defined(_WIN32)
+#define _vsnprintf vsnprintf
+#define _stricmp strcasecmp
+#endif
 
 //
 // Put POOL_ALLOCATOR_NEW_DELETE in base classes to make them use this scheme.
