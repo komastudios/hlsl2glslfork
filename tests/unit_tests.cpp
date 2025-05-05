@@ -23,6 +23,13 @@
     "//------------------------------------------------------------\n" << \
     output << \
     "//------------------------------------------------------------\n";
+#define TEST_COMPILE_SHADER_ERROR(type, src, expected) \
+    auto [success, output] = compileShader(type, src); \
+    EXPECT_FALSE(success) << "expected error"; \
+    EXPECT_EQ(TrimStr(expected), TrimStr(output)) << \
+    "//------------------------------------------------------------\n" << \
+    output << \
+    "//------------------------------------------------------------\n";
 
 using namespace ::testing;
 
@@ -340,6 +347,44 @@ void main() {
 // uniforms:
 // shadowmap:<none> type 26 arrsize 0
 )""");
+}
+
+// NOLINTNEXTLINE
+TEST_P(Hlsl2GlslTest, SyntaxError)
+{
+    const char* kInvalidShaderSrc = R"""(
+#line 1 "undefined-type-in.txt"
+#line 1 "undefined-type-in.hlsl"
+void main(out float4 overtex : POSITION)
+    {
+        bloat4 b(1.f, 1.f, 1.f, 1.f);
+        overtex = float4(b.x,b.y,b,z,b.w);
+    }
+)""";
+
+    TEST_COMPILE_SHADER_ERROR(VERTEX_SHADER, kInvalidShaderSrc,
+        "undefined-type-in.hlsl(3): ERROR: 'bloat4' : undeclared identifier \n"
+        "undefined-type-in.hlsl(3): ERROR: 'b' : syntax error syntax error \n"
+    );
+}
+
+// NOLINTNEXTLINE
+TEST_P(Hlsl2GlslTest, ReservedWord)
+{
+    const char* kInvalidShaderSrc = R"""(
+#line 1 "undefined-type-in.txt"
+#line 1 "undefined-type-in.hlsl"
+void main(out float4 asm : POSITION)
+    {
+        float4 b(1.f, 1.f, 1.f, 1.f);
+        asm = float4(b.x,b.y,b,z,b.w);
+    }
+)""";
+
+    TEST_COMPILE_SHADER_ERROR(VERTEX_SHADER, kInvalidShaderSrc,
+        "undefined-type-in.hlsl(1): ERROR: 'asm' : Reserved word. \n"
+        "undefined-type-in.hlsl(1): ERROR: 'asm' : syntax error syntax error \n"
+    );
 }
 
 // NOLINTNEXTLINE

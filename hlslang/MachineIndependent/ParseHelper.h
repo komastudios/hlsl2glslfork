@@ -108,7 +108,7 @@ public:
 };
 
 int PaParseString(char* source, TParseContext&, Hlsl2Glsl_ParseCallbacks* = NULL);
-void PaReservedWord();
+void PaReservedWord(void*);
 int PaIdentOrType(TString& id, TParseContext&, TSymbol*&);
 int PaParseComment(TSourceLoc &lineno, TParseContext&, void*);
 void setInitialState();

@@ -192,40 +192,40 @@ extern int hlsl2glsl_yyparse(hlsl2glsl::TParseContext*, yyscan_t yyscanner);
 
 "struct"       {  yylval_param->lex.line = lexlineno; return(STRUCT); }
 
-"asm"          {  PaReservedWord(); return 0; }
+"asm"          {  PaReservedWord(yyscanner); return 0; }
 
-"class"        {  PaReservedWord(); return 0; }
-"union"        {  PaReservedWord(); return 0; }
-"enum"         {  PaReservedWord(); return 0; }
-"typedef"      {  PaReservedWord(); return 0; }
-"template"     {  PaReservedWord(); return 0; }
-"this"         {  PaReservedWord(); return 0; }
-"packed"       {  PaReservedWord(); return 0; }
+"class"        {  PaReservedWord(yyscanner); return 0; }
+"union"        {  PaReservedWord(yyscanner); return 0; }
+"enum"         {  PaReservedWord(yyscanner); return 0; }
+"typedef"      {  PaReservedWord(yyscanner); return 0; }
+"template"     {  PaReservedWord(yyscanner); return 0; }
+"this"         {  PaReservedWord(yyscanner); return 0; }
+"packed"       {  PaReservedWord(yyscanner); return 0; }
 
-"goto"         {  PaReservedWord(); return 0; }
-"switch"       {  PaReservedWord(); return 0; }
-"default"      {  PaReservedWord(); return 0; }
+"goto"         {  PaReservedWord(yyscanner); return 0; }
+"switch"       {  PaReservedWord(yyscanner); return 0; }
+"default"      {  PaReservedWord(yyscanner); return 0; }
 
-"inline"       {  /* just ignore it PaReservedWord(); return 0; */ }
-"noinline"     {  /* just ignore it PaReservedWord(); return 0; */ }
-"volatile"     {  PaReservedWord(); return 0; }
-"public"       {  PaReservedWord(); return 0; }
-"extern"       {  PaReservedWord(); return 0; }
-"external"     {  PaReservedWord(); return 0; }
-"interface"    {  PaReservedWord(); return 0; }
+"inline"       {  /* just ignore it PaReservedWord(yyscanner); return 0; */ }
+"noinline"     {  /* just ignore it PaReservedWord(yyscanner); return 0; */ }
+"volatile"     {  PaReservedWord(yyscanner); return 0; }
+"public"       {  PaReservedWord(yyscanner); return 0; }
+"extern"       {  PaReservedWord(yyscanner); return 0; }
+"external"     {  PaReservedWord(yyscanner); return 0; }
+"interface"    {  PaReservedWord(yyscanner); return 0; }
 
-"long"         {  PaReservedWord(); return 0; }
-"short"        {  PaReservedWord(); return 0; }
-"double"       {  PaReservedWord(); return 0; }
-"unsigned"     {  PaReservedWord(); return 0; }
+"long"         {  PaReservedWord(yyscanner); return 0; }
+"short"        {  PaReservedWord(yyscanner); return 0; }
+"double"       {  PaReservedWord(yyscanner); return 0; }
+"unsigned"     {  PaReservedWord(yyscanner); return 0; }
 
-"sampler3DRect"        {  PaReservedWord(); return 0; }
+"sampler3DRect"        {  PaReservedWord(yyscanner); return 0; }
 
-"sizeof"       {  PaReservedWord(); return 0; }
-"cast"         {  PaReservedWord(); return 0; }
+"sizeof"       {  PaReservedWord(yyscanner); return 0; }
+"cast"         {  PaReservedWord(yyscanner); return 0; }
 
-"namespace"    {  PaReservedWord(); return 0; }
-"using"        {  PaReservedWord(); return 0; }
+"namespace"    {  PaReservedWord(yyscanner); return 0; }
+"using"        {  PaReservedWord(yyscanner); return 0; }
 
 {L}({L}|{D})*       {  
    yylval_param->lex.line = lexlineno; 
@@ -535,17 +535,18 @@ int PaParseString(char* source, TParseContext& parseContextLocal, Hlsl2Glsl_Pars
 }
 
 // Parser error handling: match Bison error calls (parseContext, scanner, message)
-void hlsl2glsl_yyerror(TParseContext& parseContext, void* /*scanner*/, const char *s)
-{ 
-    // Report syntax error; scanner parameter unused
-    parseContext.error(lexlineno, "syntax error", "", s, "");
-    parseContext.recover();
+void hlsl2glsl_yyerror(TParseContext& parseContext, void* scanner, const char *s)
+{
+    yyscan_t yyscanner = static_cast<yyscan_t>(scanner);
+	parseContext.error(lexlineno, "syntax error", parseContext.AfterEOF ? "" : yyget_text(yyscanner), s, "");
+	parseContext.recover();
 }
 
-void PaReservedWord()
+void PaReservedWord(void* scanner)
 {
-    // GlobalParseContext->error(lexlineno, "Reserved word.", yytext, "", "");
-    GlobalParseContext->error(lexlineno, "Reserved word.", "", "", "");
+    yyscan_t yyscanner = static_cast<yyscan_t>(scanner);
+    GlobalParseContext->error(lexlineno, "Reserved word.", yyget_text(yyscanner), "", "");
+    //GlobalParseContext->error(lexlineno, "Reserved word.", "", "", "");
     GlobalParseContext->recover();
 }
 
@@ -567,10 +568,10 @@ int PaParseComment(TSourceLoc &lineno, TParseContext& parseContextLocal, void* s
 {
     int transitionFlag = 0;
     int nextChar;
-    yyscan_t* yyscanner = static_cast<yyscan_t*>(scanner);
+    yyscan_t yyscanner = static_cast<yyscan_t>(scanner);
     
     while (transitionFlag != 2) {
-        nextChar = yyinput(*yyscanner);
+        nextChar = yyinput(yyscanner);
         if (nextChar == '\n')
              lineno.line++;
         switch (nextChar) {
