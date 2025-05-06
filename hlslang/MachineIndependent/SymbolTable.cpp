@@ -72,7 +72,7 @@ void TType::buildMangledName(TString& mangledName) const
 	if (isArray())
 	{
 		char buf[10];
-		sprintf(buf, "%d", arraySize);
+		snprintf(buf, sizeof(buf), "%d", arraySize);
 		mangledName += 'a';
 		mangledName += buf;
 	}

@@ -105,7 +105,7 @@ inline const TString String(const int i, const int base = 10)
    char text[16];     // 32 bit ints are at most 10 digits in base 10
 
    // we assume base 10 for all cases
-   sprintf(text, "%d", i);
+   snprintf(text, sizeof(text), "%d", i);
 
    return text;
 }

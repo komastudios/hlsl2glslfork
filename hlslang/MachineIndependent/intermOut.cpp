@@ -34,17 +34,18 @@ TString TType::getCompleteString() const
 {
    char buf[100];
    char *p = &buf[0];
+   char *end = p + sizeof(buf);
 
    if (qualifier != EvqTemporary && qualifier != EvqGlobal)
-      p += sprintf(p, "%s ", getQualifierString());
+      p += snprintf(p, end - p, "%s ", getQualifierString());
 
-   sprintf(p, "%s", getBasicString());
+   snprintf(p, end - p, "%s", getBasicString());
    if (array)
-      p += sprintf(p, " array");
+      p += snprintf(p, end - p, " array");
    if (matrix)
-      p += sprintf(p, "matrix%dX%d", matcols, matrows);
+      p += snprintf(p, end - p, "matrix%dX%d", matcols, matrows);
    else if (matrows > 1)
-      p += sprintf(p, "vec%d", matrows);
+      p += snprintf(p, end - p, "vec%d", matrows);
 
    return TString(buf);
 }   
@@ -79,7 +80,7 @@ void OutputSymbol(TIntermSymbol* node, TIntermTraverser* it)
    OutputTreeText(oit->infoSink, node, oit->depth);
 
    char buf[100];
-   sprintf(buf, "'%s' (%s)\n",
+   snprintf(buf, sizeof(buf), "'%s' (%s)\n",
            node->getSymbol().c_str(),
            node->getCompleteString().c_str());
 
@@ -405,7 +406,7 @@ void OutputConstant(TIntermConstant* node, TIntermTraverser* it)
       case EbtFloat:
          {
             char buf[300];
-            sprintf(buf, "%f (%s)", node->toFloat(i), "const float");
+            snprintf(buf, sizeof(buf), "%f (%s)", node->toFloat(i), "const float");
 
             out.debug << buf << "\n";
          }
@@ -413,7 +414,7 @@ void OutputConstant(TIntermConstant* node, TIntermTraverser* it)
       case EbtInt:
          {
             char buf[300];
-            sprintf(buf, "%d (%s)", node->toInt(i), "const int");
+            snprintf(buf, sizeof(buf), "%d (%s)", node->toInt(i), "const int");
 
             out.debug << buf << "\n";
             break;
