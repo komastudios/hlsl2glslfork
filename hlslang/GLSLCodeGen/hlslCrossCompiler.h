@@ -20,7 +20,7 @@ class HlslLinker;
 class HlslCrossCompiler
 {
 public:   
-   HlslCrossCompiler(EShLanguage l);
+   HlslCrossCompiler(EShLanguage l, const ShUserPrefixTable* userPrefixTable);
    ~HlslCrossCompiler();
 
    EShLanguage getLanguage() const { return language; }
@@ -35,6 +35,7 @@ public:
 
 private:
 	EShLanguage language;
+	TPrefixTable m_PrefixTable;
 	bool m_ASTTransformed;
 	bool m_GlslProduced;
 

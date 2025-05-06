@@ -54,19 +54,19 @@ static const char* attribString[EAttrSemCount] = {
 	"gl_MultiTexCoord7",
 	"",
 	"",
-	"xlat_attrib_tangent",
+	"@tangent",
 	"",
 	"",
 	"",
-	"xlat_attrib_binorm",
+	"@binorm",
 	"",
 	"",
 	"",
-	"xlat_attrib_blendweights",
+	"@blendweights",
 	"",
 	"",
 	"",
-	"xlat_attrib_blendindices",
+	"@blendindices",
 	"",
 	"",
 	"",
@@ -248,8 +248,6 @@ static const char* resultString[EAttrSemCount] = {
 	"gl_SampleMask[0]",
 };
 
-static const char* kUserVaryingPrefix = "xlv_";
-
 static inline const char* GetVertexInputQualifier (ETargetVersion targetVersion)
 {
 	return targetVersion>=ETargetGLSL_ES_300 ? "in" : "attribute";
@@ -265,24 +263,24 @@ static inline const char* GetFragmentInputQualifier (ETargetVersion targetVersio
 	return targetVersion>=ETargetGLSL_ES_300 ? "in" : "varying";
 }
 
-static inline void AddVertexOutput (std::stringstream& s, ETargetVersion targetVersion, TPrecision prec, const std::string& type, const std::string& name)
+static inline void AddVertexOutput (std::stringstream& s, const TPrefixTable& pt, ETargetVersion targetVersion, TPrecision prec, const std::string& type, const std::string& name)
 {
-	if (strstr (name.c_str(), kUserVaryingPrefix) == name.c_str())
+	if (strstr (name.c_str(), pt.varyingPrefix.c_str()) == name.c_str())
 		s << GetVertexOutputQualifier(targetVersion) << " " << getGLSLPrecisiontring(prec) << type << " " << name << ";\n";
 }
 
-static inline void AddFragmentInput (std::stringstream& s, ETargetVersion targetVersion, TPrecision prec, const std::string& type, const std::string& name)
+static inline void AddFragmentInput (std::stringstream& s, const TPrefixTable& pt, ETargetVersion targetVersion, TPrecision prec, const std::string& type, const std::string& name)
 {
-	if (strstr (name.c_str(), kUserVaryingPrefix) == name.c_str())
+	if (strstr (name.c_str(), pt.varyingPrefix.c_str()) == name.c_str())
 		s << GetFragmentInputQualifier(targetVersion) << " " << getGLSLPrecisiontring(prec) << type << " " << name << ";\n";
 }
 
-static inline void AddToVaryings (std::stringstream& s, EShLanguage language, ETargetVersion targetVersion, TPrecision prec, const std::string& type, const std::string& name)
+static inline void AddToVaryings (std::stringstream& s, const TPrefixTable& pt, EShLanguage language, ETargetVersion targetVersion, TPrecision prec, const std::string& type, const std::string& name)
 {
 	if (language == EShLangVertex)
-		AddVertexOutput(s, targetVersion, prec, type, name);
+		AddVertexOutput(s, pt, targetVersion, prec, type, name);
 	else
-		AddFragmentInput(s, targetVersion, prec, type, name);
+		AddFragmentInput(s, pt, targetVersion, prec, type, name);
 }
 
 static inline bool UsesBuiltinAttribStrings(ETargetVersion targetVersion, unsigned options)
@@ -300,8 +298,9 @@ static inline bool UsesBuiltinAttribStrings(ETargetVersion targetVersion, unsign
 }
 
 
-HlslLinker::HlslLinker(TInfoSink& infoSink_)
+HlslLinker::HlslLinker(TInfoSink& infoSink_, const TPrefixTable& prefixTable)
 : infoSink(infoSink_)
+, m_PrefixTable(prefixTable)
 , m_Target(ETargetVersionCount)
 , m_Options(0)
 {
@@ -372,12 +371,12 @@ void HlslLinker::getAttributeName( GlslSymbolOrStructMemberBase const* symOrStru
 		// Otherwise, use the built-in attribute name
 		else
 		{
-			outName = UsesBuiltinAttribStrings(m_Target, m_Options) ? attribString[sem] : "\0";
-			if ( sem == EAttrSemUnknown || outName[0] == '\0' )
+			std::string pName = UsesBuiltinAttribStrings(m_Target, m_Options) ? attribString[sem] : "\0";
+			if ( sem == EAttrSemUnknown || pName[0] == '\0' || pName[0] == '@' )
 			{
 				//handle the blind data
-				outName = "xlat_attrib_";
-				outName += symOrStructMember->semantic;
+				outName = m_PrefixTable.attributePrefix;
+				outName += pName[0] == '@' ? pName.substr(1) : symOrStructMember->semantic;
 			}
 		}
 	}
@@ -468,7 +467,7 @@ bool HlslLinker::getArgumentData2( GlslSymbolOrStructMemberBase const* symOrStru
 			// Create varying name
 			if ( (sem != EAttrSemPosition && sem != EAttrSemPrimitiveID && sem != EAttrSemPSize) || varOutString[sem][0] == 0 )
 			{
-				outName = kUserVaryingPrefix;
+				outName = m_PrefixTable.varyingPrefix; //kUserVaryingPrefix;
 				outName += semantic;
 				// If an array element, add the semantic offset to the name
 				if ( semanticOffset > 0 )
@@ -506,7 +505,7 @@ bool HlslLinker::getArgumentData2( GlslSymbolOrStructMemberBase const* symOrStru
 			// Create user varying name
 			else if ( (sem != EAttrSemVPos && sem != EAttrSemVFace && sem != EAttrSemPrimitiveID) || varInString[sem][0] == 0 )
 			{
-				outName = kUserVaryingPrefix;
+				outName = m_PrefixTable.varyingPrefix;
 				outName += stripSemanticModifier (semantic, false);
 				// If an array element, add the semantic offset to the name
 				if ( semanticOffset > 0 )
@@ -559,7 +558,7 @@ bool HlslLinker::getArgumentData2( GlslSymbolOrStructMemberBase const* symOrStru
 	else
 	{
 		//these should always match exactly
-		outName = "xlu_";
+		outName = m_PrefixTable.uniformPrefix;
 		outName += symOrStructMember->name;
 	}
 
@@ -761,12 +760,12 @@ static void EmitIfNotEmpty (std::stringstream& out, const std::stringstream& str
 		out << str.str() << "\n";
 }
 
-static const char* GetEntryName (const char* entryFunc)
+static std::string GetEntryName (const TPrefixTable& pt, const char* entryFunc)
 {
 	if (!entryFunc)
 		return "";
 	if (!strcmp(entryFunc, "main"))
-		return "xlat_main";
+		return pt.prefix + "at_main";
 	return entryFunc;
 }
 
@@ -952,7 +951,6 @@ void HlslLinker::buildUniformsAndLibFunctions(const FunctionSet& calledFunctions
 	constants.resize(std::unique(constants.begin(), constants.end()) - constants.begin());
 }
 
-
 void HlslLinker::emitLibraryFunctions(const std::set<TOperator>& libFunctions, EShLanguage lang, bool usePrecision)
 {
 	// library Functions & required extensions
@@ -961,9 +959,10 @@ void HlslLinker::emitLibraryFunctions(const std::set<TOperator>& libFunctions, E
 	{
 		for (std::set<TOperator>::const_iterator it = libFunctions.begin(); it != libFunctions.end(); it++)
 		{
-			const std::string &func = getHLSLSupportCode(*it, m_Extensions, lang==EShLangVertex, usePrecision);
+			std::string func = getHLSLSupportCode(*it, m_Extensions, lang==EShLangVertex, usePrecision);
 			if (!func.empty())
 			{
+				ReplaceString(func, "@LL@", m_PrefixTable.linkerPrefix);
 				shaderLibFunctions += func;
 				shaderLibFunctions += '\n';
 			}
@@ -1053,7 +1052,7 @@ static void emitSymbolWithPad (std::stringstream& str, const std::string& ctor, 
 }
 
 
-static void emitSingleInputVariable (EShLanguage lang, ETargetVersion targetVersion, const std::string& name, const std::string& ctor, EGlslSymbolType type, TPrecision prec, std::stringstream& attrib, std::stringstream& varying)
+static void emitSingleInputVariable (const TPrefixTable& pt, EShLanguage lang, ETargetVersion targetVersion, const std::string& name, const std::string& ctor, EGlslSymbolType type, TPrecision prec, std::stringstream& attrib, std::stringstream& varying)
 {
 	// vertex shader: emit custom attributes
 	if (lang == EShLangVertex && strncmp(name.c_str(), "gl_", 3) != 0)
@@ -1075,7 +1074,7 @@ static void emitSingleInputVariable (EShLanguage lang, ETargetVersion targetVers
 	// fragment shader: emit varying
 	if (lang == EShLangFragment)
 	{
-		AddFragmentInput(varying, targetVersion, prec, ctor, name);
+		AddFragmentInput(varying, pt, targetVersion, prec, ctor, name);
 	}
 }
 	
@@ -1111,13 +1110,13 @@ void HlslLinker::emitInputNonStructParam(GlslSymbol* sym, EShLanguage lang, bool
 	{
 		preamble << "    ";
 		writeType (preamble, sym->getType(), NULL, usePrecision?sym->getPrecision():EbpUndefined);
-		preamble << " xlt_" << sym->getName() << " = ";
+		preamble << " " << m_PrefixTable.temporaryPrefix << sym->getName() << " = ";
 		emitSymbolWithPad (preamble, ctor, name, pad);
 		preamble << ";\n";
 	}
 
 	if (!sym->outputSuppressedBy())
-		emitSingleInputVariable (lang, m_Target, name, ctor, sym->getType(), sym->getPrecision(), attrib, varying);
+		emitSingleInputVariable (m_PrefixTable, lang, m_Target, name, ctor, sym->getType(), sym->getPrecision(), attrib, varying);
 }
 
 
@@ -1205,7 +1204,7 @@ bool HlslLinker::emitInputStruct(const GlslStruct* str, std::string parentName, 
 			}
 
 			if (!current.outputSuppressedBy())
-				emitSingleInputVariable (lang, m_Target, name, ctor, current.type, current.precision, attrib, varying);
+				emitSingleInputVariable (m_PrefixTable, lang, m_Target, name, ctor, current.type, current.precision, attrib, varying);
 		}
 	}
 	return true;
@@ -1217,11 +1216,11 @@ void HlslLinker::emitInputStructParam(GlslSymbol* sym, EShLanguage lang, std::st
 	assert(str);
 
 	// temporary variable for the struct
-	const std::string tempVar = "xlt_" + sym->getName();
+	const std::string tempVar = m_PrefixTable.temporaryPrefix + sym->getName();
 	preamble << "    " << str->getName() << " ";
 	preamble << tempVar <<";\n";
 	call << tempVar;
-	emitInputStruct(str, "xlt_" + sym->getName() + ".", lang, attrib, varying, preamble);
+	emitInputStruct(str, m_PrefixTable.temporaryPrefix + sym->getName() + ".", lang, attrib, varying, preamble);
 }
 
 
@@ -1256,18 +1255,18 @@ void HlslLinker::emitOutputNonStructParam(GlslSymbol* sym, EShLanguage lang, boo
         }
 
         writeType (preamble, sym->getType(), NULL,prec);
-		preamble << " xlt_" << sym->getName() << ";\n";                     
+		preamble << " " << m_PrefixTable.temporaryPrefix << sym->getName() << ";\n";                     
 	}
 	
 	// In vertex shader, add to varyings
 	if (lang == EShLangVertex)
-		AddVertexOutput (varying, m_Target, sym->getPrecision(), ctor, name);
+		AddVertexOutput (varying, m_PrefixTable, m_Target, sym->getPrecision(), ctor, name);
 	
-	call << "xlt_" << sym->getName();
+	call << m_PrefixTable.temporaryPrefix << sym->getName();
 	
 	postamble << "    ";
 	postamble << name << " = ";
-	emitSymbolWithPad (postamble, ctor, "xlt_"+sym->getName(), pad);
+	emitSymbolWithPad (postamble, ctor, m_PrefixTable.temporaryPrefix+sym->getName(), pad);
 	postamble << ";\n";
 }
 
@@ -1279,7 +1278,7 @@ void HlslLinker::emitOutputStructParam(GlslSymbol* sym, EShLanguage lang, bool u
 	assert(Struct);
 	
 	//first create the temp
-	std::string tempVar = "xlt_" + sym->getName();
+	std::string tempVar = m_PrefixTable.temporaryPrefix + sym->getName();
 	
 	// For "inout" parmaeters the preamble and call were already written, no need to do it here
 	if ( sym->getQualifier() != EqtInOut )
@@ -1311,7 +1310,7 @@ void HlslLinker::emitOutputStructParam(GlslSymbol* sym, EShLanguage lang, bool u
 
 		// In vertex shader, add to varyings
 		if (lang == EShLangVertex)
-			AddVertexOutput (varying, m_Target, current.precision, ctor, name);
+			AddVertexOutput (varying, m_PrefixTable, m_Target, current.precision, ctor, name);
 	}
 }
 
@@ -1353,13 +1352,13 @@ void HlslLinker::emitMainStart(const HlslCrossCompiler* compiler, const EGlslSym
 	{
 		GlslStruct* retStruct = funcMain->getStruct();
 		assert(retStruct);
-		preamble << "    " << retStruct->getName() << " xl_retval;\n";
+		preamble << "    " << retStruct->getName() << " " << m_PrefixTable.prefix << "_retval;\n";
 	}
 	else if (retType != EgstVoid)
 	{
 		preamble << "    ";
 		writeType (preamble, retType, NULL, usePrecision?funcMain->getPrecision():EbpUndefined);
-		preamble << " xl_retval;\n";
+		preamble << " " << m_PrefixTable.prefix << "_retval;\n";
 	}
 }
 
@@ -1424,7 +1423,7 @@ bool HlslLinker::emitReturnStruct(GlslStruct *retStruct, std::string parentName,
 
 				// In vertex shader, add to varyings
 				if (lang == EShLangVertex)
-					AddVertexOutput (varying, m_Target, current.precision, ctor, name);
+					AddVertexOutput (varying, m_PrefixTable, m_Target, current.precision, ctor, name);
 			}
 		}
 	}
@@ -1468,12 +1467,12 @@ bool HlslLinker::emitReturnValue(const EGlslSymbolType retType, GlslFunction* fu
 		
 		postamble << "    ";
 		postamble << name << " = ";
-		emitSymbolWithPad (postamble, ctor, "xl_retval", pad);		
+		emitSymbolWithPad (postamble, ctor, m_PrefixTable.prefix + "_retval", pad);		
 		postamble << ";\n";
 		
 		// In vertex shader, add to varyings
 		if (lang == EShLangVertex)
-			AddToVaryings (varying, lang, m_Target, funcMain->getPrecision(), ctor, name);
+			AddToVaryings (varying, m_PrefixTable, lang, m_Target, funcMain->getPrecision(), ctor, name);
 		return true;
 	}
 	
@@ -1481,7 +1480,7 @@ bool HlslLinker::emitReturnValue(const EGlslSymbolType retType, GlslFunction* fu
 	assert (retType == EgstStruct);
 	GlslStruct *retStruct = funcMain->getStruct();
 	assert (retStruct);
-	return emitReturnStruct(retStruct, std::string("xl_retval."), lang, varying, postamble);
+	return emitReturnStruct(retStruct, std::string(m_PrefixTable.prefix + "_retval."), lang, varying, postamble);
 }
 
 // Called recursively and appends (to list) any symbols that have semantic sem.
@@ -1550,7 +1549,7 @@ bool HlslLinker::link(HlslCrossCompiler* compiler, const char* entryFunc, ETarge
 	const bool usePrecision = Hlsl2Glsl_VersionUsesPrecision(targetVersion);
 	
 	EShLanguage lang = compiler->getLanguage();
-	std::string entryPoint = GetEntryName (entryFunc);
+	std::string entryPoint = GetEntryName (m_PrefixTable, entryFunc);
 	
 	
 	// figure out all relevant functions
@@ -1603,7 +1602,7 @@ bool HlslLinker::link(HlslCrossCompiler* compiler, const char* entryFunc, ETarge
 	// Call the entry point
 	call << "    ";
 	if (retType != EgstVoid)
-		call << "xl_retval = ";
+		call << m_PrefixTable.prefix << "_retval = ";
 	call << funcMain->getName() << "( ";
 	
 
@@ -1655,11 +1654,11 @@ bool HlslLinker::link(HlslCrossCompiler* compiler, const char* entryFunc, ETarge
 		case EqtUniform:
 			uniform << "uniform ";
 			writeType (uniform, sym->getType(), NULL, usePrecision?sym->getPrecision():EbpUndefined);
-			uniform << " xlu_" << sym->getName();
+			uniform << " " << m_PrefixTable.uniformPrefix << sym->getName();
 			if(sym->getArraySize())
 				uniform << "[" << sym->getArraySize() << "]";
 			uniform << ";\n";
-			call << "xlu_" << sym->getName();
+			call << m_PrefixTable.uniformPrefix << sym->getName();
 			break;
 
 		default:

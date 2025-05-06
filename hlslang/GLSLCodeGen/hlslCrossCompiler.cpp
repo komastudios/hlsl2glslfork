@@ -13,12 +13,13 @@
 namespace hlsl2glsl
 {
 
-HlslCrossCompiler::HlslCrossCompiler(EShLanguage l)
+HlslCrossCompiler::HlslCrossCompiler(EShLanguage l, const ShUserPrefixTable* pt)
 :	language(l)
 ,	m_ASTTransformed(false)
 ,	m_GlslProduced(false)
 {
-	linker = new HlslLinker(infoSink);
+	m_PrefixTable.copyFrom(pt);
+	linker = new HlslLinker(infoSink, m_PrefixTable);
 }
 
 HlslCrossCompiler::~HlslCrossCompiler()
@@ -46,7 +47,8 @@ void HlslCrossCompiler::TransformAST (TIntermNode *root)
 void HlslCrossCompiler::ProduceGLSL (TIntermNode *root, ETargetVersion version, unsigned options)
 {
 	m_GlslProduced = true;
-	TGlslOutputTraverser glslTraverse (infoSink, functionList, structList, m_DeferredArrayInit, m_DeferredMatrixInit, version, options);
+	TGlslOutputTraverser glslTraverse (infoSink, functionList, structList, m_DeferredArrayInit, m_DeferredMatrixInit,
+		version, options, m_PrefixTable);
 	root->traverse(&glslTraverse);
 }
 

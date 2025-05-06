@@ -35,7 +35,21 @@
 
 #include <string>
 
-extern "C" {
+constexpr const char* kShDefaultPrefix = "xl";
+constexpr const char* kShDefaultAttributePrefix = "at_attrib_"; 
+constexpr const char* kShDefaultLinkerPrefix = "l_";
+constexpr const char* kShDefaultUniformPrefix = "u_";
+constexpr const char* kShDefaultTemporaryPrefix = "t_";
+constexpr const char* kShDefaultVaryingPrefix = "v_";
+
+struct ShUserPrefixTable {
+	const char* prefix {};
+	const char* attributePrefix;
+	const char* linkerPrefix {};
+	const char* uniformPrefix {};
+	const char* temporaryPrefix {};
+	const char* varyingPrefix {};
+};
 
 /// Types of languages the HLSL2GLSL translator can consume.
 typedef enum
@@ -237,7 +251,8 @@ namespace hlsl2glsl {
 class HlslCrossCompiler;
 } // namespace hlsl2glsl
 typedef hlsl2glsl::HlslCrossCompiler* ShHandle;
-	
+
+extern "C" {
 
 /// Initialize the HLSL2GLSL translator.  This function must be called once prior to calling any other
 /// HLSL2GLSL translator functions
@@ -250,8 +265,10 @@ HLSL2GLSL_IMPORT_EXPORT int C_DECL Hlsl2Glsl_Initialize();
 HLSL2GLSL_IMPORT_EXPORT void C_DECL Hlsl2Glsl_Shutdown();
 
 /// Construct a compiler for the given language (one per shader)
-HLSL2GLSL_IMPORT_EXPORT ShHandle C_DECL Hlsl2Glsl_ConstructCompiler( const EShLanguage language );  
+HLSL2GLSL_IMPORT_EXPORT ShHandle C_DECL Hlsl2Glsl_ConstructCompilerUserPrefix( EShLanguage language, const ShUserPrefixTable* prefixTable );
 
+	/// Construct a compiler for the given language (one per shader)
+	HLSL2GLSL_IMPORT_EXPORT ShHandle C_DECL Hlsl2Glsl_ConstructCompiler( EShLanguage language );
 
 HLSL2GLSL_IMPORT_EXPORT void C_DECL Hlsl2Glsl_DestructCompiler( ShHandle handle );
 

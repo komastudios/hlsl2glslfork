@@ -231,13 +231,18 @@ void C_DECL Hlsl2Glsl_Shutdown()
 }
 
 
-ShHandle C_DECL Hlsl2Glsl_ConstructCompiler( const EShLanguage language )
+ShHandle C_DECL Hlsl2Glsl_ConstructCompilerUserPrefix( const EShLanguage language, const ShUserPrefixTable* prefixTable )
 {
    if (!InitThread())
       return 0;
 
-   HlslCrossCompiler* compiler = new HlslCrossCompiler(language);
+   auto* compiler = new HlslCrossCompiler(language, prefixTable);
    return compiler;
+}
+
+ShHandle C_DECL Hlsl2Glsl_ConstructCompiler( const EShLanguage language )
+{
+	return Hlsl2Glsl_ConstructCompilerUserPrefix(language, nullptr);
 }
 
 void C_DECL Hlsl2Glsl_DestructCompiler( ShHandle handle )

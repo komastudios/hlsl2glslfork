@@ -114,7 +114,7 @@ CompilerResult CompileShader(EShLanguage type, ETargetVersion targetVersion, con
 {
     unsigned options = 0;
     std::unique_ptr<hlsl2glsl::HlslCrossCompiler, decltype(&Hlsl2Glsl_DestructCompiler)> parser(
-        Hlsl2Glsl_ConstructCompiler(type), &Hlsl2Glsl_DestructCompiler);
+        Hlsl2Glsl_ConstructCompilerUserPrefix(type, nullptr), &Hlsl2Glsl_DestructCompiler);
     int parseOk = Hlsl2Glsl_Parse (parser.get(), shaderSrc.c_str(),
         targetVersion, nullptr, options);
     std::string infoLog = Hlsl2Glsl_GetInfoLog(parser.get());

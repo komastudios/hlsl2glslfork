@@ -36,7 +36,7 @@ class HlslLinker
 {
 public:
 
-   HlslLinker(TInfoSink& infoSink);
+   HlslLinker(TInfoSink& infoSink, const TPrefixTable& prefixTable);
    ~HlslLinker();
 	
    TInfoSink& getInfoSink() { return infoSink; }
@@ -87,6 +87,7 @@ private:
 	
 private:
 	TInfoSink& infoSink;
+	const TPrefixTable& m_PrefixTable;
 	
 	// GLSL string for additional extension prepropressor directives.
 	// This is used for version and extensions that expose built-in variables.

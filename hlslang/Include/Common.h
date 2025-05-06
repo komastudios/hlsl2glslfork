@@ -110,6 +110,19 @@ inline const TString String(const int i, const int base = 10)
    return text;
 }
 
+inline void ReplaceString (std::string& target, const std::string& search, const std::string& replace, size_t startPos=0)
+{
+	if (search.empty())
+		return;
+	
+	std::string::size_type p = startPos;
+	while ((p = target.find (search, p)) != std::string::npos)
+	{
+		target.replace (p, search.size (), replace);
+		p += replace.size ();
+	}
+}
+
 } // namespace hlsl2glsl
 
 #endif // _COMMON_INCLUDED_

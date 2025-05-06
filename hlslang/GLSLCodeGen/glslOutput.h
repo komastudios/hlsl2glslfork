@@ -36,7 +36,7 @@ private:
 	void traverseArrayDeclarationWithInit(TIntermDeclaration* decl);
 
 public:
-	TGlslOutputTraverser (TInfoSink& i, std::vector<GlslFunction*> &funcList, std::vector<GlslStruct*> &sList, std::stringstream& deferredArrayInit, std::stringstream& deferredMatrixInit, ETargetVersion version, unsigned options);
+	TGlslOutputTraverser (TInfoSink& i, std::vector<GlslFunction*> &funcList, std::vector<GlslStruct*> &sList, std::stringstream& deferredArrayInit, std::stringstream& deferredMatrixInit, ETargetVersion version, unsigned options, const TPrefixTable& m_PrefixTable);
 	GlslStruct *createStructFromType( TType *type );
 	
 	// Info Sink
@@ -73,6 +73,9 @@ public:
 	ETargetVersion m_TargetVersion;
 	bool m_UsePrecision;
 	bool m_ArrayInitWorkaround;
+
+	const TPrefixTable& m_PrefixTable;
+	TString m_LinkerPrefix;
 };
 
 } // namespace hlsl2glsl

@@ -22,6 +22,36 @@ namespace hlsl2glsl
 
 struct TParseContext;
 
+struct TPrefixTable
+{
+   std::string prefix;
+   std::string attributePrefix;
+   std::string linkerPrefix;
+   std::string uniformPrefix;
+   std::string temporaryPrefix;
+   std::string varyingPrefix;
+
+   inline static const char* Str(const char* val, const char* def)
+   {
+	  return val ? val : def;
+   }
+
+   inline void copyFrom(const ShUserPrefixTable& pt)
+   {
+	  prefix = Str(pt.prefix, kShDefaultPrefix);
+	  attributePrefix = prefix + Str(pt.attributePrefix, kShDefaultAttributePrefix);
+	  linkerPrefix = prefix + Str(pt.linkerPrefix, kShDefaultLinkerPrefix);
+	  uniformPrefix = prefix + Str(pt.uniformPrefix, kShDefaultUniformPrefix);
+	  temporaryPrefix = prefix + Str(pt.temporaryPrefix, kShDefaultTemporaryPrefix);
+	  varyingPrefix = prefix + Str(pt.varyingPrefix, kShDefaultVaryingPrefix);
+   }
+
+   inline void copyFrom(const ShUserPrefixTable* pt)
+   {
+	  copyFrom(pt ? *pt : ShUserPrefixTable{});
+   }
+};
+
 //
 // Operators used by the high-level (parse tree) representation.
 //

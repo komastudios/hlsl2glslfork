@@ -15,7 +15,7 @@ namespace hlsl2glsl
 class GlslSymbol : public GlslSymbolOrStructMemberBase
 {
 public:
-	GlslSymbol( const std::string &n, const std::string &s, const std::string &r, int id, EGlslSymbolType t, TPrecision precision, EGlslQualifier q, int as = 0 );
+	GlslSymbol( const TPrefixTable& pt, const std::string &n, const std::string &s, const std::string &r, int id, EGlslSymbolType t, TPrecision precision, EGlslQualifier q, int as = 0 );
 
 	bool getIsParameter() const { return isParameter; }
 	void setIsParameter( bool param ) { isParameter = param; }
@@ -56,6 +56,7 @@ public:
 	int getRef() const { return refCount; }
 
 private:
+	const TPrefixTable& prefixTable;
 	std::string mangledName;
 	std::string mutableMangledName;
 	std::string registerSpec;

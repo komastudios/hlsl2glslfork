@@ -378,8 +378,9 @@ static bool IsGlslBuiltin (const std::string& name)
 	return false;
 }
 
-GlslSymbol::GlslSymbol( const std::string &n, const std::string &s, const std::string &r, int id, EGlslSymbolType t, TPrecision prec, EGlslQualifier q, int as )
+GlslSymbol::GlslSymbol( const TPrefixTable& pt, const std::string &n, const std::string &s, const std::string &r, int id, EGlslSymbolType t, TPrecision prec, EGlslQualifier q, int as )
  : GlslSymbolOrStructMemberBase(n, s, t, q, prec, as),
+   prefixTable(pt),
    registerSpec(r),
    identifier(id),
    mangleCounter(0),
@@ -389,12 +390,12 @@ GlslSymbol::GlslSymbol( const std::string &n, const std::string &s, const std::s
 {
 	if (IsReservedGlslKeyword(n) || IsGlslBuiltin(n))
 	{
-		name = "xlat_var" + n;
+		name = pt.prefix + "at_var" + n;
 	}
 	mangledName = name;
 
 	if (qual == EqtMutableUniform)
-		mutableMangledName = "xlat_mutable" + mangledName;
+		mutableMangledName = pt.prefix + "at_mutable" + mangledName;
 	else
 		mutableMangledName = mangledName;   
 }
@@ -435,7 +436,7 @@ void GlslSymbol::mangleName()
 	s << "_" << mangleCounter;
 	mangledName = name + s.str();
 	if ( qual == EqtMutableUniform) 
-		mutableMangledName = "xlat_mutable" + mangledName;
+		mutableMangledName = prefixTable.prefix + "at_mutable" + mangledName;
 	else
 		mutableMangledName = mangledName;
 }
