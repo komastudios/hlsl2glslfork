@@ -20,7 +20,7 @@ namespace hlsl2glsl
 class GlslFunction 
 {
 public:
-	GlslFunction (const std::string& n, const std::string& m, EGlslSymbolType type, TPrecision precision, const std::string &s, const TSourceLoc& line);
+	GlslFunction (const TPrefixTable& pt, const std::string& n, const std::string& m, EGlslSymbolType type, TPrecision precision, const std::string &s, const TSourceLoc& line);
 	virtual ~GlslFunction();
 
 	void addSymbol( GlslSymbol *sym );   

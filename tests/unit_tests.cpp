@@ -113,8 +113,23 @@ using CompilerResult = std::pair<bool, std::string>;
 CompilerResult CompileShader(EShLanguage type, ETargetVersion targetVersion, const std::string& shaderSrc)
 {
     unsigned options = 0;
+
+    ShUserPrefixTable prefixTable {};
+    prefixTable.prefix = "";
+
+    static EAttribSemantic userAttribSemantics[] = {
+        EAttrSemPosition,
+        EAttrSemNormal,
+    };
+    static const char* userAttribNames[] = {
+        "a_position",
+        "a_normal",
+    };
+
     std::unique_ptr<hlsl2glsl::HlslCrossCompiler, decltype(&Hlsl2Glsl_DestructCompiler)> parser(
-        Hlsl2Glsl_ConstructCompilerUserPrefix(type, nullptr), &Hlsl2Glsl_DestructCompiler);
+        Hlsl2Glsl_ConstructCompilerUserPrefix(type, &prefixTable), &Hlsl2Glsl_DestructCompiler);
+    Hlsl2Glsl_SetUserAttributeNames(parser.get(),
+        userAttribSemantics, userAttribNames, std::size(userAttribSemantics));
     int parseOk = Hlsl2Glsl_Parse (parser.get(), shaderSrc.c_str(),
         targetVersion, nullptr, options);
     std::string infoLog = Hlsl2Glsl_GetInfoLog(parser.get());
@@ -225,27 +240,27 @@ TEST_P(Hlsl2GlslTest, VertexShaderES2)
     targetVersion = ETargetGLSL_ES_100;
     TEST_COMPILE_SHADER(VERTEX_SHADER, kVertexShaderSrc,
 R"""(
-mat3 xll_constructMat3_mf4x4( mat4 m) {
+mat3 l_constructMat3_mf4x4( mat4 m) {
   return mat3( vec3( m[0]), vec3( m[1]), vec3( m[2]));
 }
 uniform highp mat4 matrix_mvp;
 #line 3
 uniform highp mat4 matrix_normal;
 #line 5
-void xlat_main( in highp vec4 vertex, out highp vec4 overtex, in highp vec3 normal, out highp vec3 onormal ) {
+void at_main( in highp vec4 vertex, out highp vec4 overtex, in highp vec3 normal, out highp vec3 onormal ) {
     #line 7
     overtex = (matrix_mvp * vertex);
-    onormal = (xll_constructMat3_mf4x4( matrix_normal) * normal);
+    onormal = (l_constructMat3_mf4x4( matrix_normal) * normal);
 }
-attribute highp vec4 xlat_attrib_POSITION;
-attribute highp vec3 xlat_attrib_NORMAL;
-varying highp vec3 xlv_TEXCOORD0;
+attribute highp vec4 a_position;
+attribute highp vec3 a_normal;
+varying highp vec3 v_TEXCOORD0;
 void main() {
-    highp vec4 xlt_overtex;
-    highp vec3 xlt_onormal;
-    xlat_main( vec4(xlat_attrib_POSITION), xlt_overtex, vec3(xlat_attrib_NORMAL), xlt_onormal);
-    gl_Position = vec4(xlt_overtex);
-    xlv_TEXCOORD0 = vec3(xlt_onormal);
+    highp vec4 t_overtex;
+    highp vec3 t_onormal;
+    at_main( vec4(a_position), t_overtex, vec3(a_normal), t_onormal);
+    gl_Position = vec4(t_overtex);
+    v_TEXCOORD0 = vec3(t_onormal);
 }
 
 // uniforms:
@@ -264,20 +279,20 @@ uniform highp mat4 matrix_mvp;
 #line 3
 uniform highp mat4 matrix_normal;
 #line 5
-void xlat_main( in highp vec4 vertex, out highp vec4 overtex, in highp vec3 normal, out highp vec3 onormal ) {
+void at_main( in highp vec4 vertex, out highp vec4 overtex, in highp vec3 normal, out highp vec3 onormal ) {
     #line 7
     overtex = (matrix_mvp * vertex);
     onormal = (mat3( matrix_normal) * normal);
 }
-in highp vec4 xlat_attrib_POSITION;
-in highp vec3 xlat_attrib_NORMAL;
-out highp vec3 xlv_TEXCOORD0;
+in highp vec4 a_position;
+in highp vec3 a_normal;
+out highp vec3 v_TEXCOORD0;
 void main() {
-    highp vec4 xlt_overtex;
-    highp vec3 xlt_onormal;
-    xlat_main( vec4(xlat_attrib_POSITION), xlt_overtex, vec3(xlat_attrib_NORMAL), xlt_onormal);
-    gl_Position = vec4(xlt_overtex);
-    xlv_TEXCOORD0 = vec3(xlt_onormal);
+    highp vec4 t_overtex;
+    highp vec3 t_onormal;
+    at_main( vec4(a_position), t_overtex, vec3(a_normal), t_onormal);
+    gl_Position = vec4(t_overtex);
+    v_TEXCOORD0 = vec3(t_onormal);
 }
 
 // uniforms:
@@ -293,24 +308,24 @@ TEST_P(Hlsl2GlslTest, FragmentShaderES2)
     TEST_COMPILE_SHADER(FRAGMENT_SHADER, kFragmentShaderSrc,
 R"""(
 #extension GL_EXT_shadow_samplers : require
-float xll_shadow2D(sampler2DShadow s, vec3 coord) { return shadow2DEXT (s, coord); }
-float xll_shadow2Dproj(sampler2DShadow s, vec4 coord) { return shadow2DProjEXT (s, coord); }
+float l_shadow2D(sampler2DShadow s, vec3 coord) { return shadow2DEXT (s, coord); }
+float l_shadow2Dproj(sampler2DShadow s, vec4 coord) { return shadow2DProjEXT (s, coord); }
 uniform lowp sampler2DShadow shadowmap;
 #line 4
 #line 4
-lowp vec4 xlat_main( in highp vec4 uv ) {
-    highp float s1 = xll_shadow2D( shadowmap, uv.xyz);
-    highp float s2 = xll_shadow2Dproj( shadowmap, uv);
+lowp vec4 at_main( in highp vec4 uv ) {
+    highp float s1 = l_shadow2D( shadowmap, uv.xyz);
+    highp float s2 = l_shadow2Dproj( shadowmap, uv);
     #line 9
     s1 = float( shadow2D( shadowmap, uv.xyz));
     s2 = float( shadow2DProj( shadowmap, uv));
     return vec4( (s1 + s2));
 }
-varying highp vec4 xlv_TEXCOORD0;
+varying highp vec4 v_TEXCOORD0;
 void main() {
-    lowp vec4 xl_retval;
-    xl_retval = xlat_main( vec4(xlv_TEXCOORD0));
-    gl_FragData[0] = vec4(xl_retval);
+    lowp vec4 _retval;
+    _retval = at_main( vec4(v_TEXCOORD0));
+    gl_FragData[0] = vec4(_retval);
 }
 
 // uniforms:
@@ -324,24 +339,24 @@ TEST_P(Hlsl2GlslTest, FragmentShaderES3)
     targetVersion = ETargetGLSL_ES_300;
     TEST_COMPILE_SHADER(FRAGMENT_SHADER, kFragmentShaderSrc,
 R"""(
-float xll_shadow2D(mediump sampler2DShadow s, vec3 coord) { return texture (s, coord); }
-float xll_shadow2Dproj(mediump sampler2DShadow s, vec4 coord) { return textureProj (s, coord); }
+float l_shadow2D(mediump sampler2DShadow s, vec3 coord) { return texture (s, coord); }
+float l_shadow2Dproj(mediump sampler2DShadow s, vec4 coord) { return textureProj (s, coord); }
 uniform lowp sampler2DShadow shadowmap;
 #line 4
 #line 4
-lowp vec4 xlat_main( in highp vec4 uv ) {
-    highp float s1 = xll_shadow2D( shadowmap, uv.xyz);
-    highp float s2 = xll_shadow2Dproj( shadowmap, uv);
+lowp vec4 at_main( in highp vec4 uv ) {
+    highp float s1 = l_shadow2D( shadowmap, uv.xyz);
+    highp float s2 = l_shadow2Dproj( shadowmap, uv);
     #line 9
     s1 = float( texture( shadowmap, uv.xyz));
     s2 = float( textureProj( shadowmap, uv));
     return vec4( (s1 + s2));
 }
-in highp vec4 xlv_TEXCOORD0;
+in highp vec4 v_TEXCOORD0;
 void main() {
-    lowp vec4 xl_retval;
-    xl_retval = xlat_main( vec4(xlv_TEXCOORD0));
-    gl_FragData[0] = vec4(xl_retval);
+    lowp vec4 _retval;
+    _retval = at_main( vec4(v_TEXCOORD0));
+    gl_FragData[0] = vec4(_retval);
 }
 
 // uniforms:

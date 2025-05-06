@@ -8,7 +8,7 @@
 namespace hlsl2glsl
 {
 
-GlslFunction::GlslFunction( const std::string &n, const std::string &m, EGlslSymbolType type, TPrecision prec, const std::string &s, const TSourceLoc& l)
+GlslFunction::GlslFunction( const TPrefixTable& pt, const std::string &n, const std::string &m, EGlslSymbolType type, TPrecision prec, const std::string &s, const TSourceLoc& l)
 : name(n)
 , mangledName(m)
 , returnType(type)
@@ -19,6 +19,8 @@ GlslFunction::GlslFunction( const std::string &n, const std::string &m, EGlslSym
 , depth(0)
 , inStatement(false)
 { 
+	ReplaceString(name, "@MAIN@", pt.prefix + "at_main");
+	ReplaceString(mangledName, "@MAIN@", pt.prefix + "at_main");
 	active = new std::stringstream();
 	active->setf ( std::stringstream::showpoint );
 	active->unsetf(std::ios::fixed);

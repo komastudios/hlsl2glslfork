@@ -656,7 +656,7 @@ function_identifier
 		TType type(EbtVoid, EbpUndefined);
 		const TString *mangled;
 		if ( *$1.string == "main")
-			mangled = NewPoolTString("xlat_main");
+			mangled = NewPoolTString("@MAIN@");
 		else
 			mangled = $1.string;
 		TFunction *function = new TFunction( mangled, type);
@@ -1022,7 +1022,7 @@ function_header
         TType type($1);
     const TString* mangled = 0;
     if ( *$2.string == "main")
-        mangled = NewPoolTString( "xlat_main");
+        mangled = NewPoolTString("@MAIN@");
     else
         mangled = $2.string;
 

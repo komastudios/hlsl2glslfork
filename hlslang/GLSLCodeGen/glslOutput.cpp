@@ -364,7 +364,7 @@ TGlslOutputTraverser::TGlslOutputTraverser(TInfoSink& i, std::vector<GlslFunctio
 
 	// Add a fake "global" function for declarations & initializers happening
 	// at global scope.
-	global = new GlslFunction( "__global__", "__global__", EgstVoid, EbpUndefined, "", oneSourceLoc);
+	global = new GlslFunction( m_PrefixTable, "__global__", "__global__", EgstVoid, EbpUndefined, "", oneSourceLoc);
 	functionList.push_back(global);
 	current = global;
 }
@@ -1443,7 +1443,7 @@ bool TGlslOutputTraverser::traverseAggregate( bool preVisit, TIntermAggregate *n
 
    case EOpFunction:
       {
-         GlslFunction *func = new GlslFunction( node->getPlainName().c_str(), node->getName().c_str(),
+         GlslFunction *func = new GlslFunction( goit->m_PrefixTable, node->getPlainName().c_str(), node->getName().c_str(),
                                                 translateType(node->getTypePointer()), goit->m_UsePrecision?node->getPrecision():EbpUndefined,
 											   node->getSemantic().c_str(), node->getLine()); 
          if (func->getReturnType() == EgstStruct)

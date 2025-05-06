@@ -24,6 +24,7 @@ public:
    ~HlslCrossCompiler();
 
    EShLanguage getLanguage() const { return language; }
+   const TPrefixTable& getPrefixTable() const { return m_PrefixTable; }
    TInfoSink& getInfoSink() { return infoSink; }
 
    void TransformAST (TIntermNode* root);

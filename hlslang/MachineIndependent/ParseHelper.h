@@ -30,6 +30,9 @@ struct TParseContext
 	, lexAfterType(false)
 	, loopNestingLevel(0)
 	, inTypeParen(false)
+	, currentFunctionType()
+	, functionReturnsValue(false)
+	, AfterEOF(false)
 	, preprocessor(nullptr)
 	{
 	}

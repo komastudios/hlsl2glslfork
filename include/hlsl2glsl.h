@@ -44,7 +44,7 @@ constexpr const char* kShDefaultVaryingPrefix = "v_";
 
 struct ShUserPrefixTable {
 	const char* prefix {};
-	const char* attributePrefix;
+	const char* attributePrefix {};
 	const char* linkerPrefix {};
 	const char* uniformPrefix {};
 	const char* temporaryPrefix {};
@@ -267,8 +267,8 @@ HLSL2GLSL_IMPORT_EXPORT void C_DECL Hlsl2Glsl_Shutdown();
 /// Construct a compiler for the given language (one per shader)
 HLSL2GLSL_IMPORT_EXPORT ShHandle C_DECL Hlsl2Glsl_ConstructCompilerUserPrefix( EShLanguage language, const ShUserPrefixTable* prefixTable );
 
-	/// Construct a compiler for the given language (one per shader)
-	HLSL2GLSL_IMPORT_EXPORT ShHandle C_DECL Hlsl2Glsl_ConstructCompiler( EShLanguage language );
+/// Construct a compiler for the given language (one per shader)
+HLSL2GLSL_IMPORT_EXPORT ShHandle C_DECL Hlsl2Glsl_ConstructCompiler( EShLanguage language );
 
 HLSL2GLSL_IMPORT_EXPORT void C_DECL Hlsl2Glsl_DestructCompiler( ShHandle handle );
 

@@ -24,32 +24,36 @@ struct TParseContext;
 
 struct TPrefixTable
 {
-   std::string prefix;
-   std::string attributePrefix;
-   std::string linkerPrefix;
-   std::string uniformPrefix;
-   std::string temporaryPrefix;
-   std::string varyingPrefix;
+	std::string prefix;
+	std::string attributePrefix;
+	std::string linkerPrefix;
+	std::string uniformPrefix;
+	std::string temporaryPrefix;
+	std::string varyingPrefix;
 
-   inline static const char* Str(const char* val, const char* def)
-   {
-	  return val ? val : def;
-   }
+	static std::string Prefix(const char* prefix, const char* typePrefix, const char* defaultTypePrefix)
+	{
+		if (typePrefix)
+			return typePrefix;
+		std::string result = prefix ? prefix : kShDefaultPrefix;
+		result += defaultTypePrefix;
+		return result;
+	}
 
-   inline void copyFrom(const ShUserPrefixTable& pt)
-   {
-	  prefix = Str(pt.prefix, kShDefaultPrefix);
-	  attributePrefix = prefix + Str(pt.attributePrefix, kShDefaultAttributePrefix);
-	  linkerPrefix = prefix + Str(pt.linkerPrefix, kShDefaultLinkerPrefix);
-	  uniformPrefix = prefix + Str(pt.uniformPrefix, kShDefaultUniformPrefix);
-	  temporaryPrefix = prefix + Str(pt.temporaryPrefix, kShDefaultTemporaryPrefix);
-	  varyingPrefix = prefix + Str(pt.varyingPrefix, kShDefaultVaryingPrefix);
-   }
+	void copyFrom(const ShUserPrefixTable& pt)
+	{
+		prefix = pt.prefix ? pt.prefix : kShDefaultPrefix;
+		attributePrefix = Prefix(pt.prefix, pt.attributePrefix, kShDefaultAttributePrefix);
+		linkerPrefix = Prefix(pt.prefix, pt.linkerPrefix, kShDefaultLinkerPrefix);
+		uniformPrefix = Prefix(pt.prefix, pt.uniformPrefix, kShDefaultUniformPrefix);
+		temporaryPrefix = Prefix(pt.prefix, pt.temporaryPrefix, kShDefaultTemporaryPrefix);
+		varyingPrefix = Prefix(pt.prefix, pt.varyingPrefix, kShDefaultVaryingPrefix);
+	}
 
-   inline void copyFrom(const ShUserPrefixTable* pt)
-   {
-	  copyFrom(pt ? *pt : ShUserPrefixTable{});
-   }
+	inline void copyFrom(const ShUserPrefixTable* pt)
+	{
+		copyFrom(pt ? *pt : ShUserPrefixTable{});
+	}
 };
 
 //

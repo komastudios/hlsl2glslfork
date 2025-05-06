@@ -108,7 +108,8 @@ static bool InitializeSymbolTable( TBuiltInStrings* BuiltInStrings, EShLanguage 
 
 	//@TODO: for now, we use same global symbol table for all target language versions.
 	// This is wrong and will have to be changed at some point.
-	TParseContext parseContext(*symbolTable, language, ETargetVersionCount, 0, infoSink);
+
+   TParseContext parseContext(*symbolTable, language, ETargetVersionCount, 0, infoSink);
 
    GlobalParseContext = &parseContext;
 
