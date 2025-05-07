@@ -24,30 +24,29 @@ struct TParseContext;
 
 struct TPrefixTable
 {
-	std::string prefix;
-	std::string attributePrefix;
-	std::string linkerPrefix;
-	std::string uniformPrefix;
-	std::string temporaryPrefix;
-	std::string varyingPrefix;
-
-	static std::string Prefix(const char* prefix, const char* typePrefix, const char* defaultTypePrefix)
-	{
-		if (typePrefix)
-			return typePrefix;
-		std::string result = prefix ? prefix : kShDefaultPrefix;
-		result += defaultTypePrefix;
-		return result;
-	}
+	std::string prefixAttrib;
+	std::string prefixLinker;
+	std::string prefixTemp;
+	std::string prefixUniform;
+	std::string prefixVarying;
+	std::string identBuiltinVar;
+	std::string identMainFn;
+	std::string identMutable;
+	std::string identRetval;
+	std::string identSwizTemp;
 
 	void copyFrom(const ShUserPrefixTable& pt)
 	{
-		prefix = pt.prefix ? pt.prefix : kShDefaultPrefix;
-		attributePrefix = Prefix(pt.prefix, pt.attributePrefix, kShDefaultAttributePrefix);
-		linkerPrefix = Prefix(pt.prefix, pt.linkerPrefix, kShDefaultLinkerPrefix);
-		uniformPrefix = Prefix(pt.prefix, pt.uniformPrefix, kShDefaultUniformPrefix);
-		temporaryPrefix = Prefix(pt.prefix, pt.temporaryPrefix, kShDefaultTemporaryPrefix);
-		varyingPrefix = Prefix(pt.prefix, pt.varyingPrefix, kShDefaultVaryingPrefix);
+		prefixAttrib = pt.prefixAttrib ? pt.prefixAttrib : kShDefaultPrefixAttribute;
+		prefixLinker = pt.prefixLinker ? pt.prefixLinker : kShDefaultPrefixLinker;
+		prefixTemp = pt.prefixTemp ? pt.prefixTemp : kShDefaultPrefixTemporary;
+		prefixUniform = pt.prefixUniform ? pt.prefixUniform : kShDefaultPrefixUniform;
+		prefixVarying = pt.prefixVarying ? pt.prefixVarying : kShDefaultPrefixVarying;
+		identBuiltinVar = pt.identBuiltinVar ? pt.identBuiltinVar : kShDefaultIdentBuiltinVar;
+		identMainFn = pt.identMainFn ? pt.identMainFn : kShDefaultIdentMainFn;
+		identMutable = pt.identMutable ? pt.identMutable : kShDefaultIdentMutable;
+		identRetval = pt.identRetval ? pt.identRetval : kShDefaultIdentRetval;
+		identSwizTemp = pt.identSwizTemp ? pt.identSwizTemp : kShDefaultIdentSwizTemp;
 	}
 
 	inline void copyFrom(const ShUserPrefixTable* pt)

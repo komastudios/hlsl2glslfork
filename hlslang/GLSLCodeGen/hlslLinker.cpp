@@ -265,13 +265,13 @@ static inline const char* GetFragmentInputQualifier (ETargetVersion targetVersio
 
 static inline void AddVertexOutput (std::stringstream& s, const TPrefixTable& pt, ETargetVersion targetVersion, TPrecision prec, const std::string& type, const std::string& name)
 {
-	if (strstr (name.c_str(), pt.varyingPrefix.c_str()) == name.c_str())
+	if (strstr (name.c_str(), pt.prefixVarying.c_str()) == name.c_str())
 		s << GetVertexOutputQualifier(targetVersion) << " " << getGLSLPrecisiontring(prec) << type << " " << name << ";\n";
 }
 
 static inline void AddFragmentInput (std::stringstream& s, const TPrefixTable& pt, ETargetVersion targetVersion, TPrecision prec, const std::string& type, const std::string& name)
 {
-	if (strstr (name.c_str(), pt.varyingPrefix.c_str()) == name.c_str())
+	if (strstr (name.c_str(), pt.prefixVarying.c_str()) == name.c_str())
 		s << GetFragmentInputQualifier(targetVersion) << " " << getGLSLPrecisiontring(prec) << type << " " << name << ";\n";
 }
 
@@ -375,7 +375,7 @@ void HlslLinker::getAttributeName( GlslSymbolOrStructMemberBase const* symOrStru
 			if ( sem == EAttrSemUnknown || pName[0] == '\0' || pName[0] == '@' )
 			{
 				//handle the blind data
-				outName = m_PrefixTable.attributePrefix;
+				outName = m_PrefixTable.prefixAttrib;
 				outName += pName[0] == '@' ? pName.substr(1) : symOrStructMember->semantic;
 			}
 		}
@@ -467,7 +467,7 @@ bool HlslLinker::getArgumentData2( GlslSymbolOrStructMemberBase const* symOrStru
 			// Create varying name
 			if ( (sem != EAttrSemPosition && sem != EAttrSemPrimitiveID && sem != EAttrSemPSize) || varOutString[sem][0] == 0 )
 			{
-				outName = m_PrefixTable.varyingPrefix; //kUserVaryingPrefix;
+				outName = m_PrefixTable.prefixVarying; //kUserVaryingPrefix;
 				outName += semantic;
 				// If an array element, add the semantic offset to the name
 				if ( semanticOffset > 0 )
@@ -505,7 +505,7 @@ bool HlslLinker::getArgumentData2( GlslSymbolOrStructMemberBase const* symOrStru
 			// Create user varying name
 			else if ( (sem != EAttrSemVPos && sem != EAttrSemVFace && sem != EAttrSemPrimitiveID) || varInString[sem][0] == 0 )
 			{
-				outName = m_PrefixTable.varyingPrefix;
+				outName = m_PrefixTable.prefixVarying;
 				outName += stripSemanticModifier (semantic, false);
 				// If an array element, add the semantic offset to the name
 				if ( semanticOffset > 0 )
@@ -558,7 +558,7 @@ bool HlslLinker::getArgumentData2( GlslSymbolOrStructMemberBase const* symOrStru
 	else
 	{
 		//these should always match exactly
-		outName = m_PrefixTable.uniformPrefix;
+		outName = m_PrefixTable.prefixUniform;
 		outName += symOrStructMember->name;
 	}
 
@@ -765,7 +765,7 @@ static std::string GetEntryName (const TPrefixTable& pt, const char* entryFunc)
 	if (!entryFunc)
 		return "";
 	if (!strcmp(entryFunc, "main"))
-		return pt.prefix + "at_main";
+		return pt.identMainFn;
 	return entryFunc;
 }
 
@@ -962,7 +962,7 @@ void HlslLinker::emitLibraryFunctions(const std::set<TOperator>& libFunctions, E
 			std::string func = getHLSLSupportCode(*it, m_Extensions, lang==EShLangVertex, usePrecision);
 			if (!func.empty())
 			{
-				ReplaceString(func, "@LL@", m_PrefixTable.linkerPrefix);
+				ReplaceString(func, "@LL@", m_PrefixTable.prefixLinker);
 				shaderLibFunctions += func;
 				shaderLibFunctions += '\n';
 			}
@@ -1110,7 +1110,7 @@ void HlslLinker::emitInputNonStructParam(GlslSymbol* sym, EShLanguage lang, bool
 	{
 		preamble << "    ";
 		writeType (preamble, sym->getType(), NULL, usePrecision?sym->getPrecision():EbpUndefined);
-		preamble << " " << m_PrefixTable.temporaryPrefix << sym->getName() << " = ";
+		preamble << " " << m_PrefixTable.prefixTemp << sym->getName() << " = ";
 		emitSymbolWithPad (preamble, ctor, name, pad);
 		preamble << ";\n";
 	}
@@ -1216,11 +1216,11 @@ void HlslLinker::emitInputStructParam(GlslSymbol* sym, EShLanguage lang, std::st
 	assert(str);
 
 	// temporary variable for the struct
-	const std::string tempVar = m_PrefixTable.temporaryPrefix + sym->getName();
+	const std::string tempVar = m_PrefixTable.prefixTemp + sym->getName();
 	preamble << "    " << str->getName() << " ";
 	preamble << tempVar <<";\n";
 	call << tempVar;
-	emitInputStruct(str, m_PrefixTable.temporaryPrefix + sym->getName() + ".", lang, attrib, varying, preamble);
+	emitInputStruct(str, m_PrefixTable.prefixTemp + sym->getName() + ".", lang, attrib, varying, preamble);
 }
 
 
@@ -1255,18 +1255,18 @@ void HlslLinker::emitOutputNonStructParam(GlslSymbol* sym, EShLanguage lang, boo
         }
 
         writeType (preamble, sym->getType(), NULL,prec);
-		preamble << " " << m_PrefixTable.temporaryPrefix << sym->getName() << ";\n";                     
+		preamble << " " << m_PrefixTable.prefixTemp << sym->getName() << ";\n";                     
 	}
 	
 	// In vertex shader, add to varyings
 	if (lang == EShLangVertex)
 		AddVertexOutput (varying, m_PrefixTable, m_Target, sym->getPrecision(), ctor, name);
 	
-	call << m_PrefixTable.temporaryPrefix << sym->getName();
+	call << m_PrefixTable.prefixTemp << sym->getName();
 	
 	postamble << "    ";
 	postamble << name << " = ";
-	emitSymbolWithPad (postamble, ctor, m_PrefixTable.temporaryPrefix+sym->getName(), pad);
+	emitSymbolWithPad (postamble, ctor, m_PrefixTable.prefixTemp+sym->getName(), pad);
 	postamble << ";\n";
 }
 
@@ -1278,7 +1278,7 @@ void HlslLinker::emitOutputStructParam(GlslSymbol* sym, EShLanguage lang, bool u
 	assert(Struct);
 	
 	//first create the temp
-	std::string tempVar = m_PrefixTable.temporaryPrefix + sym->getName();
+	std::string tempVar = m_PrefixTable.prefixTemp + sym->getName();
 	
 	// For "inout" parmaeters the preamble and call were already written, no need to do it here
 	if ( sym->getQualifier() != EqtInOut )
@@ -1352,13 +1352,13 @@ void HlslLinker::emitMainStart(const HlslCrossCompiler* compiler, const EGlslSym
 	{
 		GlslStruct* retStruct = funcMain->getStruct();
 		assert(retStruct);
-		preamble << "    " << retStruct->getName() << " " << m_PrefixTable.prefix << "_retval;\n";
+		preamble << "    " << retStruct->getName() << " " << m_PrefixTable.identRetval << ";\n";
 	}
 	else if (retType != EgstVoid)
 	{
 		preamble << "    ";
 		writeType (preamble, retType, NULL, usePrecision?funcMain->getPrecision():EbpUndefined);
-		preamble << " " << m_PrefixTable.prefix << "_retval;\n";
+		preamble << " " << m_PrefixTable.identRetval << ";\n";
 	}
 }
 
@@ -1467,7 +1467,7 @@ bool HlslLinker::emitReturnValue(const EGlslSymbolType retType, GlslFunction* fu
 		
 		postamble << "    ";
 		postamble << name << " = ";
-		emitSymbolWithPad (postamble, ctor, m_PrefixTable.prefix + "_retval", pad);		
+		emitSymbolWithPad (postamble, ctor, m_PrefixTable.identRetval, pad);		
 		postamble << ";\n";
 		
 		// In vertex shader, add to varyings
@@ -1480,7 +1480,7 @@ bool HlslLinker::emitReturnValue(const EGlslSymbolType retType, GlslFunction* fu
 	assert (retType == EgstStruct);
 	GlslStruct *retStruct = funcMain->getStruct();
 	assert (retStruct);
-	return emitReturnStruct(retStruct, std::string(m_PrefixTable.prefix + "_retval."), lang, varying, postamble);
+	return emitReturnStruct(retStruct, std::string(m_PrefixTable.identRetval + "."), lang, varying, postamble);
 }
 
 // Called recursively and appends (to list) any symbols that have semantic sem.
@@ -1602,7 +1602,7 @@ bool HlslLinker::link(HlslCrossCompiler* compiler, const char* entryFunc, ETarge
 	// Call the entry point
 	call << "    ";
 	if (retType != EgstVoid)
-		call << m_PrefixTable.prefix << "_retval = ";
+		call << m_PrefixTable.identRetval << " = ";
 	call << funcMain->getName() << "( ";
 	
 
@@ -1654,11 +1654,11 @@ bool HlslLinker::link(HlslCrossCompiler* compiler, const char* entryFunc, ETarge
 		case EqtUniform:
 			uniform << "uniform ";
 			writeType (uniform, sym->getType(), NULL, usePrecision?sym->getPrecision():EbpUndefined);
-			uniform << " " << m_PrefixTable.uniformPrefix << sym->getName();
+			uniform << " " << m_PrefixTable.prefixUniform << sym->getName();
 			if(sym->getArraySize())
 				uniform << "[" << sym->getArraySize() << "]";
 			uniform << ";\n";
-			call << m_PrefixTable.uniformPrefix << sym->getName();
+			call << m_PrefixTable.prefixUniform << sym->getName();
 			break;
 
 		default:

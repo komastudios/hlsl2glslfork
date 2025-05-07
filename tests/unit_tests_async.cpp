@@ -40,7 +40,16 @@ CompilerResult CompileShader(EShLanguage type, ETargetVersion targetVersion, con
     unsigned options = 0;
 
     ShUserPrefixTable prefixTable {};
-    prefixTable.prefix = "";
+    prefixTable.prefixAttrib = "at_attrib_";
+    prefixTable.prefixLinker = "l_";
+    prefixTable.prefixTemp = "t_";
+    prefixTable.prefixUniform = "u_";
+    prefixTable.prefixVarying = "v_";
+    prefixTable.identBuiltinVar = "at_var";
+    prefixTable.identMainFn = "at_main";
+    prefixTable.identMutable = "at_mutable";
+    prefixTable.identRetval = "at_retval";
+    prefixTable.identSwizTemp = "at_swiz_temp";
 
     static EAttribSemantic userAttribSemantics[] = {
         EAttrSemPosition,
@@ -248,9 +257,9 @@ lowp vec4 at_main( in highp vec4 uv ) {
 }
 varying highp vec4 v_TEXCOORD0;
 void main() {
-    lowp vec4 _retval;
-    _retval = at_main( vec4(v_TEXCOORD0));
-    gl_FragData[0] = vec4(_retval);
+    lowp vec4 at_retval;
+    at_retval = at_main( vec4(v_TEXCOORD0));
+    gl_FragData[0] = vec4(at_retval);
 }
 
 // uniforms:
@@ -279,9 +288,9 @@ lowp vec4 at_main( in highp vec4 uv ) {
 }
 in highp vec4 v_TEXCOORD0;
 void main() {
-    lowp vec4 _retval;
-    _retval = at_main( vec4(v_TEXCOORD0));
-    gl_FragData[0] = vec4(_retval);
+    lowp vec4 at_retval;
+    at_retval = at_main( vec4(v_TEXCOORD0));
+    gl_FragData[0] = vec4(at_retval);
 }
 
 // uniforms:

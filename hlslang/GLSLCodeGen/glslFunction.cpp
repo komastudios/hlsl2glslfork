@@ -19,8 +19,8 @@ GlslFunction::GlslFunction( const TPrefixTable& pt, const std::string &n, const 
 , depth(0)
 , inStatement(false)
 { 
-	ReplaceString(name, "@MAIN@", pt.prefix + "at_main");
-	ReplaceString(mangledName, "@MAIN@", pt.prefix + "at_main");
+	ReplaceString(name, "@MAIN@", pt.identMainFn);
+	ReplaceString(mangledName, "@MAIN@", pt.identMainFn);
 	active = new std::stringstream();
 	active->setf ( std::stringstream::showpoint );
 	active->unsetf(std::ios::fixed);

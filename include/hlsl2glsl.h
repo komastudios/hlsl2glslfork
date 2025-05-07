@@ -35,20 +35,28 @@
 
 #include <string>
 
-constexpr const char* kShDefaultPrefix = "xl";
-constexpr const char* kShDefaultAttributePrefix = "at_attrib_"; 
-constexpr const char* kShDefaultLinkerPrefix = "l_";
-constexpr const char* kShDefaultUniformPrefix = "u_";
-constexpr const char* kShDefaultTemporaryPrefix = "t_";
-constexpr const char* kShDefaultVaryingPrefix = "v_";
+constexpr const char* kShDefaultPrefixAttribute = "xlat_attrib_"; 
+constexpr const char* kShDefaultPrefixLinker = "xll_";
+constexpr const char* kShDefaultPrefixTemporary = "xlt_";
+constexpr const char* kShDefaultPrefixUniform = "xlu_";
+constexpr const char* kShDefaultPrefixVarying = "xlv_";
+constexpr const char* kShDefaultIdentBuiltinVar = "xlat_var";
+constexpr const char* kShDefaultIdentMainFn = "xlat_main";
+constexpr const char* kShDefaultIdentMutable = "xlat_mutable";
+constexpr const char* kShDefaultIdentRetval = "xl_retval";
+constexpr const char* kShDefaultIdentSwizTemp = "xlat_swiz_temp";
 
 struct ShUserPrefixTable {
-	const char* prefix {};
-	const char* attributePrefix {};
-	const char* linkerPrefix {};
-	const char* uniformPrefix {};
-	const char* temporaryPrefix {};
-	const char* varyingPrefix {};
+	const char* prefixAttrib { kShDefaultPrefixAttribute };
+	const char* prefixLinker {  kShDefaultPrefixLinker };
+	const char* prefixTemp { kShDefaultPrefixTemporary };
+	const char* prefixUniform { kShDefaultPrefixUniform };
+	const char* prefixVarying { kShDefaultPrefixVarying };
+	const char* identBuiltinVar { kShDefaultIdentBuiltinVar };
+	const char* identMainFn { kShDefaultIdentMainFn };
+	const char* identMutable { kShDefaultIdentMutable };
+	const char* identRetval { kShDefaultIdentRetval };
+	const char* identSwizTemp { kShDefaultIdentSwizTemp };
 };
 
 /// Types of languages the HLSL2GLSL translator can consume.

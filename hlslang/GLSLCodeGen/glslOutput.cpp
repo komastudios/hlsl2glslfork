@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cassert>
 
 #ifdef _WIN32
 	#define snprintf _snprintf
@@ -344,7 +345,7 @@ TGlslOutputTraverser::TGlslOutputTraverser(TInfoSink& i, std::vector<GlslFunctio
 , m_UsePrecision(Hlsl2Glsl_VersionUsesPrecision(version))
 , m_ArrayInitWorkaround(!!(options & ETranslateOpEmitGLSL120ArrayInitWorkaround))
 , m_PrefixTable(m_PrefixTable)
-, m_LinkerPrefix(m_PrefixTable.linkerPrefix.c_str())
+, m_LinkerPrefix(m_PrefixTable.prefixLinker.c_str())
 {
 	m_LastLineOutput.file = NULL;
 	m_LastLineOutput.line = -1;
@@ -1057,10 +1058,10 @@ bool TGlslOutputTraverser::traverseBinary( bool preVisit, TIntermBinary *node, T
 			   unsigned n_swizzles = swizzles.size();
 			   
 			   if (n_swizzles > 1) {
-				   snprintf(temp_rval, 128, "%sat_swiztemp%d", goit->m_PrefixTable.prefix.c_str(), goit->swizzleAssignTempCounter++);
+				   snprintf(temp_rval, sizeof(temp_rval), "%d", goit->swizzleAssignTempCounter++);
 				   
 				   current->beginStatement();
-				   out << "vec" << n_swizzles << " " << temp_rval << " = ";
+				   out << "vec" << n_swizzles << " " << goit->m_PrefixTable.identSwizTemp << temp_rval << " = ";
 				   rval->traverse(goit);			   
 				   current->endStatement();
 			   }
@@ -1073,7 +1074,7 @@ bool TGlslOutputTraverser::traverseBinary( bool preVisit, TIntermBinary *node, T
 				   lexp->traverse(goit);
 				   out << "[" << row << "][" << col << "] = ";
 				   if (n_swizzles > 1)
-					   out << temp_rval << "." << vec_swizzles[i];
+					   out << goit->m_PrefixTable.identSwizTemp << temp_rval << "." << vec_swizzles[i];
 				   else
 					   rval->traverse(goit);
 				   

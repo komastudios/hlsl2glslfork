@@ -390,12 +390,12 @@ GlslSymbol::GlslSymbol( const TPrefixTable& pt, const std::string &n, const std:
 {
 	if (IsReservedGlslKeyword(n) || IsGlslBuiltin(n))
 	{
-		name = pt.prefix + "at_var" + n;
+		name = pt.identBuiltinVar + n;
 	}
 	mangledName = name;
 
 	if (qual == EqtMutableUniform)
-		mutableMangledName = pt.prefix + "at_mutable" + mangledName;
+		mutableMangledName = pt.identMutable + mangledName;
 	else
 		mutableMangledName = mangledName;   
 }
@@ -436,7 +436,7 @@ void GlslSymbol::mangleName()
 	s << "_" << mangleCounter;
 	mangledName = name + s.str();
 	if ( qual == EqtMutableUniform) 
-		mutableMangledName = prefixTable.prefix + "at_mutable" + mangledName;
+		mutableMangledName = prefixTable.identMutable + mangledName;
 	else
 		mutableMangledName = mangledName;
 }
