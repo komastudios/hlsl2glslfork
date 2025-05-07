@@ -11,7 +11,9 @@ if(BUILD_TESTING)
         add_compile_options(-Werror)
     endif()
 
-    add_executable(hlsl2glsl_unit_tests unit_tests.cpp)
+    add_executable(hlsl2glsl_unit_tests
+            unit_tests.cpp
+            unit_tests_async.cpp)
     set_property(TARGET hlsl2glsl_unit_tests PROPERTY CXX_STANDARD 17)
     set_property(TARGET hlsl2glsl_unit_tests PROPERTY CXX_STANDARD_REQUIRED ON)
     target_link_libraries(hlsl2glsl_unit_tests hlsl2glsl gtest gmock gtest_main)
